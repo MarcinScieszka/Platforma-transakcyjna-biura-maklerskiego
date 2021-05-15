@@ -11,10 +11,11 @@ class CreateGui:
         self.window.geometry("800x700")
         self.window.maxsize(800, 700)  # ustawienie minimalnego rozmiaru okna
         self.window.minsize(800, 700)  # ustawienie maksymalnego rozmiaru okna
-        self.window['bg'] = constants.BACKGROUND_COLOUR # wybór koloru tła
+        self.window['bg'] = constants.COLOUR_BACKGROUND # wybór koloru tła
         self.window.title("Platforma transakcyjna")  # nadanie tytułu dla głównego okna
         # TODO: implement window.iconbitmap with .ico
 
         widgets = Widgets(window)
         widgets.setUpLabels()  # stworzenie etykiet
+        widgets.setUpTextboxes()  # stworzenie pól tekstowych
         widgets.setUpButtons()  # stworzenie przycisków

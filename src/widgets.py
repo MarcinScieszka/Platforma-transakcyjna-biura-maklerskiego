@@ -37,10 +37,11 @@ class Widgets:
         self.close_button.grid(row=10, column=1)
         self.confirm_amount_button.grid(row=3, column=2)
 
-
-    def show_error(self):
+    def show_error(self, error_message):
         """Metoda wyświetla okno z komunikatem błędu."""
-        messagebox.showerror('Błąd', 'Podano nieprawidłową wartość')
+
+        messagebox.showerror('Błąd', error_message)
+
 
     def quit(self):
         """Metoda zamyka główne okno aplikacji."""
@@ -48,4 +49,15 @@ class Widgets:
         self.window.destroy()
 
     def read_amount(self):
-        print(self.amount_entry.get())
+        """Metoda odczytuje wartość kwoty wprowadzonej przez użytkownika"""
+
+        try:
+            amount = int(self.amount_entry.get())
+        except ValueError:
+            self.show_error(ERROR_MESSAGE_VALUE)
+            return
+
+        if amount <= 0:
+            self.show_error(ERROR_MESSAGE_VALUE)
+
+        print(amount)

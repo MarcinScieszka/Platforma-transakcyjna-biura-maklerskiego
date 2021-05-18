@@ -16,6 +16,3 @@ class CreateGui:
         # TODO: implement window.iconbitmap with .ico
 
         widgets = Widgets(window)
-        widgets.setUpLabels()  # stworzenie etykiet
-        widgets.setUpTextboxes()  # stworzenie pól tekstowych
-        widgets.setUpButtons()  # stworzenie przycisków

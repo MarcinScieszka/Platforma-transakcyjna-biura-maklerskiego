@@ -18,8 +18,8 @@ class Widgets:
                                   font=(FONT_TYPEFACE, FONT_SIZE_REGULAR))
 
         # wyświetlanie etykiet
-        self.main_title_label.grid(row=0, column=3, sticky=N)
-        self.main_description_label.grid(row=1, column=3, sticky=N)
+        self.main_title_label.grid(row=0, column=2, columnspan=6, sticky='ew')
+        self.main_description_label.grid(row=1, column=2, columnspan=6, sticky='ew')
         self.amount_label.grid(row=3, column=0, sticky=W)
 
         # tworzenie pól tekstowych
@@ -31,24 +31,27 @@ class Widgets:
 
         # tworzenie przycisków
         self.close_button = Button(self.window, text=TEXT_CLOSE_BUTTON, command=self.quit, padx=10)
-        self.confirm_amount_button = Button(self.window, text=TEXT_CONFIRM_BUTTON, command=self.read_amount)
+        self.deposit_amount_button = Button(self.window, text=TEXT_DEPOSIT_BUTTON,
+                                            command=lambda: self.read_amount(STATE_DEPOSIT))
+        self.withdraw_amount_button = Button(self.window, text=TEXT_WITHDRAW_BUTTON,
+                                             command=lambda: self.read_amount(STATE_WITHDRAWAL))
 
         # wyświetlanie przycisków
         self.close_button.grid(row=10, column=1)
-        self.confirm_amount_button.grid(row=3, column=2)
+        self.deposit_amount_button.grid(row=3, column=2)
+        self.withdraw_amount_button.grid(row=3, column=3)
 
     def show_error(self, error_message):
         """Metoda wyświetla okno z komunikatem błędu."""
 
         messagebox.showerror('Błąd', error_message)
 
-
     def quit(self):
         """Metoda zamyka główne okno aplikacji."""
 
         self.window.destroy()
 
-    def read_amount(self):
+    def read_amount(self, state):
         """Metoda odczytuje wartość kwoty wprowadzonej przez użytkownika"""
 
         try:
@@ -60,4 +63,9 @@ class Widgets:
         if amount <= 0:
             self.show_error(ERROR_MESSAGE_VALUE)
 
-        print(amount)
+        if state == STATE_DEPOSIT:
+            print('You chose to deposit %lf zł' % amount)
+            # TODO: implement deposit method
+        if state == STATE_WITHDRAWAL:
+            print('You chose to withdraw %lf zł' % amount)
+            # TODO: implement withdrawal method

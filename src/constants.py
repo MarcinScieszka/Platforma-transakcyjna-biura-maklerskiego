@@ -1,7 +1,9 @@
 TEXT_MAIN_TITLE = 'Platforma transakcyjna Future Station'
 TEXT_MAIN_DESCRIPTION = 'Biuro maklerskie William-Scott Trade'
 TEXT_CLOSE_BUTTON = 'Wyjdź'
-TEXT_CONFIRM_BUTTON = 'Zatwierdź'
+# TEXT_CONFIRM_BUTTON = 'Zatwierdź'
+TEXT_WITHDRAW_BUTTON = 'Wypłać'
+TEXT_DEPOSIT_BUTTON = 'Wpłać'
 TEXT_AMOUNT = 'Kwota'
 
 COLOUR_BACKGROUND = '#2A2A2E'
@@ -14,3 +16,6 @@ FONT_SIZE_DESCRIPTION = 14
 FONT_SIZE_REGULAR = 12
 
 ERROR_MESSAGE_VALUE = 'Podano nieprawidłową wartość'
+
+STATE_DEPOSIT = 'deposit'
+STATE_WITHDRAWAL = 'withdrawal'

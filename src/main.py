@@ -1,8 +1,10 @@
 from tkinter import *
-from gui import CreateGui
+from src.platform import Platform
+
 
 """Uruchomienie głównej pętli programu."""
 
-window = Tk()
-CreateGui(window)  # wywołanie klasy tworzącej gui
-window.mainloop()
+if __name__ == '__main__':
+    window = Tk()
+    Platform(window)  # wywołanie klasy obsługującej platformę
+    window.mainloop()

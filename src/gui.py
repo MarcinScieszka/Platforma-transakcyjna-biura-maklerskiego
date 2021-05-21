@@ -9,9 +9,8 @@ class CreateGui:
         """
 
         cls.window = window
-        cls.window.geometry("800x700")  # ustawienie wymiarów okna na 800 na 700 pixeli
-        cls.window.maxsize(800, 700)  # ustawienie minimalnego rozmiaru okna
-        cls.window.minsize(800, 700)  # ustawienie maksymalnego rozmiaru okna
+        cls.window.geometry("800x600")  # ustawienie wymiarów okna na 800 na 600 pikseli
+        cls.window.resizable(False, False)  # zablokowanie możliwości zmiany rozmiaru okna
         cls.window['bg'] = COLOUR_BACKGROUND  # wybór koloru tła
         cls.window.title("Platforma transakcyjna")  # nadanie tytułu dla głównego okna
         # TODO: implement window.iconbitmap with .ico

@@ -61,8 +61,8 @@ class Platform:
 
 
 class Transfer(Platform):
+    """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
     account_value = 0
-    amount = None
 
     def __init__(self, window, state):
         super().__init__(window)
@@ -70,27 +70,43 @@ class Transfer(Platform):
         self.handle_transfer(self.state)
 
     def handle_transfer(self, state):
+        """Metoda obługuje proces transakcji"""
         amount = self.get_amount()
-        is_correct = self.verify(amount)
+        is_correct = self.verify(amount, state)
 
         if is_correct:
-            amount = int(amount)  # wiemy, że kwota jest poprawna, możemy ją castować
+            amount = round(float(amount), 2)  # wiemy, że kwota jest poprawna, możemy ją zaokrąglić do dwóch miejsc po przecinku
             if self.state == STATE_DEPOSIT:
-                print('Czy na pewno chcesz wpłacić %lf zł' % amount)
-
+                self.deposit(amount)
             if self.state == STATE_WITHDRAWAL:
-                print('Czy na pewno chcesz wypłacić %lf zł' % amount)
+                self.withdraw(amount)
+
+    def deposit(self, amount):
+        response = messagebox.askokcancel("Potwierdź wpłatę", 'Czy na pewno chcesz wpłacić {} zł?'.format(amount))
+        if response == 1:  # użytkownik potwierdził chęć wpłaty na konto
+            Transfer.account_value += amount
+            Transfer.account_value = round(Transfer.account_value, 2)
+            messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
+            messagebox.showinfo('', 'Stan środków na kocie: {} zł'.format(Transfer.account_value))
+
+    def withdraw(self, amount):
+        response = messagebox.askokcancel("Potwierdź wypłatę", 'Czy na pewno chcesz wypłacić {} zł?'.format(amount))
+        if response == 1:  # użytkownik potwierdził chęć wypłaty na konto
+            Transfer.account_value -= amount
+            Transfer.account_value = round(Transfer.account_value, 2)
+            messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
+            messagebox.showinfo('', 'Stan środków na kocie: {} zł'.format(Transfer.account_value))
 
     def get_amount(self):
         """Metoda odczytuje kwotę podaną przez użytkownika"""
 
         return self.amount_entry.get()
 
-    def verify(self, amount):
+    def verify(self, amount, state):
         """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty"""
 
         try:
-            amount = int(amount)
+            amount = float(amount)
         except ValueError:
             self.show_error(ERROR_MESSAGE_VALUE)
             return False
@@ -98,5 +114,10 @@ class Transfer(Platform):
         if amount <= 0:
             self.show_error(ERROR_MESSAGE_VALUE)
             return False
+
+        if state == STATE_WITHDRAWAL:
+            if self.account_value - amount < 0:
+                self.show_error(ERROR_MESSAGE_NEGATIVE_BALANCE)
+                return False
 
         return True

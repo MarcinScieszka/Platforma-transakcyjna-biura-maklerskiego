@@ -18,6 +18,7 @@ FONT_SIZE_DESCRIPTION = 14
 FONT_SIZE_REGULAR = 12
 
 ERROR_MESSAGE_VALUE = 'Podano nieprawidłową wartość'
+ERROR_MESSAGE_NEGATIVE_BALANCE = 'Niewystarczająca ilość środków do wypłaty'
 
 STATE_DEPOSIT = 'deposit'
 STATE_WITHDRAWAL = 'withdrawal'

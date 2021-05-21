@@ -1,9 +1,13 @@
 from tkinter import *
 from src.platform import Platform
 
-"""Uruchomienie głównej pętli programu."""
+
+def main():
+    """Główna funkcja programu"""
+    window = Tk()
+    Platform(window)  # wywołanie głównej klasy obsługującej platformę
+    window.mainloop()
+
 
 if __name__ == '__main__':
-    window = Tk()
-    Platform(window)  # wywołanie klasy obsługującej platformę
-    window.mainloop()
+    main()

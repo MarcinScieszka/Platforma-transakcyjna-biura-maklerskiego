@@ -5,8 +5,9 @@ TEXT_CLOSE_BUTTON = 'Wyjdź'
 TEXT_WITHDRAW_BUTTON = 'Wypłać'
 TEXT_DEPOSIT_BUTTON = 'Wpłać depozyt'
 TEXT_AMOUNT = 'Kwota'
-# TEXT_CURRENT_BALANCE = 'Saldo'
-TEXT_ACCOUNT_VALUE = 'Wartość konta'
+TEXT_CURRENT_BALANCE = 'Saldo: '
+# TEXT_ACCOUNT_VALUE = 'Wartość konta: '
+TEXT_CURRENCY = ' zł'
 
 COLOUR_BACKGROUND = '#2A2A2E'
 COLOUR_TEXT = '#FAFAFA'
@@ -17,8 +18,9 @@ FONT_SIZE_TITLE = 20
 FONT_SIZE_DESCRIPTION = 14
 FONT_SIZE_REGULAR = 12
 
+ERROR = 'Błąd'
 ERROR_MESSAGE_VALUE = 'Podano nieprawidłową wartość'
 ERROR_MESSAGE_NEGATIVE_BALANCE = 'Niewystarczająca ilość środków do wypłaty'
 
-STATE_DEPOSIT = 'deposit'
-STATE_WITHDRAWAL = 'withdrawal'
+STATE_DEPOSIT = 'chęć wpłaty'
+STATE_WITHDRAWAL = 'chęć wypłaty'

@@ -1,37 +1,15 @@
 from tkinter import *
 from tkinter import messagebox
-from constants import *
-from src.deposit import Deposit
-from src.test import Func
+from src.constants import *
+from src.gui import CreateGui
 
 
 class Platform:
-    account_value = 0
+    """Główna klasa platformy transakcyjnej"""
 
     def __init__(self, window):
         self.window = window
-        gui = CreateGui(window)  # wywołanie klasy ustawiającej parametry gui
-        wid = Widgets(window)  # wywołanie klasy obsługującej przyciski, pola tekstowe i etykiety
-
-
-class CreateGui:
-    def __init__(self, window):
-        """
-        Klasa ustawia główne parametry graficznego interfejsu programu wykorzystując bibliotekę tkinter.
-        """
-
-        self.window = window
-        self.window.geometry("800x700")
-        self.window.maxsize(800, 700)  # ustawienie minimalnego rozmiaru okna
-        self.window.minsize(800, 700)  # ustawienie maksymalnego rozmiaru okna
-        self.window['bg'] = COLOUR_BACKGROUND  # wybór koloru tła
-        self.window.title("Platforma transakcyjna")  # nadanie tytułu dla głównego okna
-        # TODO: implement window.iconbitmap with .ico
-
-
-class Widgets:
-    def __init__(self, window):
-        self.window = window
+        CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
 
         # tworzenie etykiet
         self.main_title_label = Label(self.window, text=TEXT_MAIN_TITLE, bg=COLOUR_BACKGROUND, fg=COLOUR_TEXT,
@@ -58,45 +36,67 @@ class Widgets:
         self.amount_entry.grid(row=3, column=1)
 
         # tworzenie przycisków
-        self.close_button = Button(self.window, text=TEXT_CLOSE_BUTTON, command=self.c_quit, padx=10)
+        self.close_button = Button(self.window, text=TEXT_CLOSE_BUTTON, command=lambda: self.quit_platfom(), padx=10)
         self.deposit_amount_button = Button(self.window, text=TEXT_DEPOSIT_BUTTON,
-                                            command=lambda: self.read_amount(STATE_DEPOSIT))
+                                            command=lambda: Transfer(self.window,
+                                                                     STATE_DEPOSIT))  # Transfer(self.window, amount, state) ))
         self.withdraw_amount_button = Button(self.window, text=TEXT_WITHDRAW_BUTTON,
-                                             command=lambda: self.read_amount(STATE_WITHDRAWAL))
+                                             command=lambda: Transfer(self.window,
+                                                                      STATE_WITHDRAWAL))  # self.read_amount(STATE_WITHDRAWAL))
 
         # wyświetlanie przycisków
         self.close_button.grid(row=10, column=1)
         self.deposit_amount_button.grid(row=3, column=2)
         self.withdraw_amount_button.grid(row=3, column=3)
 
-    # TODO: move methods to Func
-
     def show_error(self, error_message):
         """Metoda wyświetla okno z komunikatem błędu."""
 
         messagebox.showerror('Błąd', error_message)
 
-    def read_amount(self, state):
-        """Metoda odczytuje wartość kwoty wprowadzonej przez użytkownika"""
+    def quit_platfom(self):
+        """Metoda zamyka główne okno aplikacji."""
+
+        self.window.destroy()
+
+
+class Transfer(Platform):
+    account_value = 0
+    amount = None
+
+    def __init__(self, window, state):
+        super().__init__(window)
+        self.state = state
+        self.handle_transfer(self.state)
+
+    def handle_transfer(self, state):
+        amount = self.get_amount()
+        is_correct = self.verify(amount)
+
+        if is_correct:
+            amount = int(amount)  # wiemy, że kwota jest poprawna, możemy ją castować
+            if self.state == STATE_DEPOSIT:
+                print('Czy na pewno chcesz wpłacić %lf zł' % amount)
+
+            if self.state == STATE_WITHDRAWAL:
+                print('Czy na pewno chcesz wypłacić %lf zł' % amount)
+
+    def get_amount(self):
+        """Metoda odczytuje kwotę podaną przez użytkownika"""
+
+        return self.amount_entry.get()
+
+    def verify(self, amount):
+        """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty"""
 
         try:
-            amount = int(self.amount_entry.get())
+            amount = int(amount)
         except ValueError:
             self.show_error(ERROR_MESSAGE_VALUE)
-            return
+            return False
 
         if amount <= 0:
             self.show_error(ERROR_MESSAGE_VALUE)
+            return False
 
-        if state == STATE_DEPOSIT:
-            print('You chose to deposit %lf zł' % amount)
-            # TODO: implement deposit method
-            d1 = Deposit(amount)
-            print(d1.get_amount())
-
-        if state == STATE_WITHDRAWAL:
-            print('You chose to withdraw %lf zł' % amount)
-            # TODO: implement withdrawal method
-
-    def c_quit(self):
-        Func(self.window).quit()
+        return True

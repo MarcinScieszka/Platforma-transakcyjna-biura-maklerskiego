@@ -1,7 +1,6 @@
 from tkinter import *
 from src.platform import Platform
 
-
 """Uruchomienie głównej pętli programu."""
 
 if __name__ == '__main__':

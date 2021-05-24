@@ -1,4 +1,4 @@
-from src.constants import COLOUR_BACKGROUND
+from src.constants import Constants
 
 
 class CreateGui:
@@ -11,6 +11,6 @@ class CreateGui:
         cls.window = window
         cls.window.geometry("800x600")  # ustawienie wymiarów okna na 800 na 600 pikseli
         cls.window.resizable(False, False)  # zablokowanie możliwości zmiany rozmiaru okna
-        cls.window['bg'] = COLOUR_BACKGROUND  # wybór koloru tła
+        cls.window['bg'] = Constants.COLOUR_BACKGROUND  # wybór koloru tła
         cls.window.title("Platforma transakcyjna")  # nadanie tytułu dla głównego okna
         # TODO: implement window.iconbitmap with .ico

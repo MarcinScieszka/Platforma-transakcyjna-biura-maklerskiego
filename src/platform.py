@@ -1,12 +1,12 @@
 from tkinter import *
 from tkinter import messagebox
-from src.constants import *
+from src.constants import Constants
 
 
 def show_error(error_message):
     """Wyświetlenie okna z komunikatem błędu."""
 
-    messagebox.showerror(MESSAGE_ERROR, error_message)
+    messagebox.showerror(Constants.MESSAGE_ERROR, error_message)
 
 
 def update_label(label_text_var, label_text):
@@ -22,28 +22,28 @@ class Platform:
         self.window = window
 
         # tworzenie etykiet
-        self.main_title_label = Label(self.window, text=TEXT_MAIN_TITLE, bg=COLOUR_BACKGROUND, fg=COLOUR_TEXT,
-                                      font=(FONT_TYPEFACE, FONT_SIZE_TITLE, FONT_WEIGHT_TITLE), pady=20)
-        self.main_description_label = Label(self.window, text=TEXT_MAIN_DESCRIPTION, bg=COLOUR_BACKGROUND,
-                                            fg=COLOUR_TEXT, font=(FONT_TYPEFACE, FONT_SIZE_DESCRIPTION), pady=20)
-        self.amount_label = Label(self.window, text=TEXT_AMOUNT, bg=COLOUR_BACKGROUND, fg=COLOUR_TEXT,
-                                  font=(FONT_TYPEFACE, FONT_SIZE_REGULAR))
+        self.main_title_label = Label(self.window, text=Constants.TEXT_MAIN_TITLE, bg=Constants.COLOUR_BACKGROUND, fg=Constants.COLOUR_TEXT,
+                                      font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_TITLE, Constants.FONT_WEIGHT_TITLE), pady=20)
+        self.main_description_label = Label(self.window, text=Constants.TEXT_MAIN_DESCRIPTION, bg=Constants.COLOUR_BACKGROUND,
+                                            fg=Constants.COLOUR_TEXT, font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_DESCRIPTION), pady=20)
+        self.amount_label = Label(self.window, text=Constants.TEXT_AMOUNT, bg=Constants.COLOUR_BACKGROUND, fg=Constants.COLOUR_TEXT,
+                                  font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_REGULAR))
 
         self.account_value_label_text = StringVar()
-        self.account_value_label_text.set(TEXT_CURRENT_BALANCE + str(Transfer.account_value) + TEXT_CURRENCY)
+        self.account_value_label_text.set(Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
         self.account_value_label = Label(self.window, textvariable=self.account_value_label_text, pady=20, padx=60,
-                                         bg=COLOUR_BACKGROUND, fg=COLOUR_TEXT, font=(FONT_TYPEFACE, FONT_SIZE_REGULAR))
+                                         bg=Constants.COLOUR_BACKGROUND, fg=Constants.COLOUR_TEXT, font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_REGULAR))
 
         # tworzenie pól tekstowych
         self.amount_text = StringVar()
-        self.amount_entry = Entry(self.window, textvariable=TEXT_AMOUNT)
+        self.amount_entry = Entry(self.window, textvariable=Constants.TEXT_AMOUNT)
 
         # tworzenie przycisków
-        self.close_button = Button(self.window, text=TEXT_CLOSE_BUTTON, command=lambda: self.exit_platform(), padx=10)
-        self.deposit_amount_button = Button(self.window, text=TEXT_DEPOSIT_BUTTON,
-                                            command=lambda: Transfer(self.window, STATE_DEPOSIT))
-        self.withdraw_amount_button = Button(self.window, text=TEXT_WITHDRAW_BUTTON,
-                                             command=lambda: Transfer(self.window, STATE_WITHDRAWAL))
+        self.close_button = Button(self.window, text=Constants.TEXT_CLOSE_BUTTON, command=lambda: self.exit_platform(), padx=10)
+        self.deposit_amount_button = Button(self.window, text=Constants.TEXT_DEPOSIT_BUTTON,
+                                            command=lambda: Transfer(self.window, Constants.STATE_DEPOSIT))
+        self.withdraw_amount_button = Button(self.window, text=Constants.TEXT_WITHDRAW_BUTTON,
+                                             command=lambda: Transfer(self.window, Constants.STATE_WITHDRAWAL))
 
         self.show_widgets()  # wyświetlenie startowych widżetów
 
@@ -70,7 +70,7 @@ class Platform:
     def exit_platform(self):
         """Metoda zamyka główne okno aplikacji."""
 
-        confirmation = messagebox.askokcancel(MESSAGE_CONFIRM_EXIT, MESSAGE_CONFIRM_EXIT_TEXT)
+        confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_EXIT, Constants.MESSAGE_CONFIRM_EXIT_TEXT)
         if confirmation:
             self.window.destroy()
 
@@ -93,9 +93,9 @@ class Transfer(Platform):
 
         if is_correct:
             amount = round(float(amount), 2)  # kwota jest poprawna, zaokrąglamy ją do dwóch miejsc po przecinku
-            if self.state == STATE_DEPOSIT:
+            if self.state == Constants.STATE_DEPOSIT:
                 self.deposit(amount)
-            if self.state == STATE_WITHDRAWAL:
+            if self.state == Constants.STATE_WITHDRAWAL:
                 self.withdraw(amount)
 
     def deposit(self, amount):
@@ -105,7 +105,7 @@ class Transfer(Platform):
             Transfer.account_value = round(Transfer.account_value, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
             update_label(self.account_value_label_text,
-                         TEXT_CURRENT_BALANCE + str(Transfer.account_value) + TEXT_CURRENCY)
+                         Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
 
     def withdraw(self, amount):
         response = messagebox.askokcancel("Potwierdź wypłatę", 'Czy na pewno chcesz wypłacić {} zł?'.format(amount))
@@ -114,7 +114,7 @@ class Transfer(Platform):
             Transfer.account_value = round(Transfer.account_value, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
             update_label(self.account_value_label_text,
-                         TEXT_CURRENT_BALANCE + str(Transfer.account_value) + TEXT_CURRENCY)
+                         Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
 
     def get_amount(self):
         """Metoda odczytuje kwotę podaną przez użytkownika"""
@@ -127,19 +127,23 @@ class Transfer(Platform):
         try:
             amount = float(amount)
         except ValueError:
-            show_error(MESSAGE_ERROR_VALUE)
+            show_error(Constants.MESSAGE_ERROR_VALUE)
             return False
 
         if amount < 0:
-            show_error(MESSAGE_ERROR_VALUE)
+            show_error(Constants.MESSAGE_ERROR_VALUE)
             return False
 
         if amount == 0:
             return False
 
-        if state == STATE_WITHDRAWAL:
+        if state == Constants.STATE_WITHDRAWAL:
             if self.account_value - amount < 0:
-                show_error(MESSAGE_ERROR_NEGATIVE_BALANCE)
+                show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
                 return False
 
         return True
+
+
+
+

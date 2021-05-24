@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import messagebox
 from src.constants import Constants
+from src.data_provider import DataProvider
+from src.gui import CreateGui
 
 
 def show_error(error_message):
@@ -20,32 +22,59 @@ class Platform:
 
     def __init__(self, window):
         self.window = window
+        CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
+        DataProvider.get_companies()
+        w1 = Widgets(window)
+
+
+class Widgets:
+    """Klasa obsługująca widżety"""
+    def __init__(self, window):
+        self.window = window
+
+        self.create_widgets()  # tworzenie widżetów
+        self.show_widgets()  # wyświetlenie startowych widżetów
+
+    def create_widgets(self):
+        """Metoda tworzy widżety takie jak przyciski, pola tekstowe, napisy"""
 
         # tworzenie etykiet
-        self.main_title_label = Label(self.window, text=Constants.TEXT_MAIN_TITLE, bg=Constants.COLOUR_BACKGROUND, fg=Constants.COLOUR_TEXT,
-                                      font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_TITLE, Constants.FONT_WEIGHT_TITLE), pady=20)
-        self.main_description_label = Label(self.window, text=Constants.TEXT_MAIN_DESCRIPTION, bg=Constants.COLOUR_BACKGROUND,
-                                            fg=Constants.COLOUR_TEXT, font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_DESCRIPTION), pady=20)
-        self.amount_label = Label(self.window, text=Constants.TEXT_AMOUNT, bg=Constants.COLOUR_BACKGROUND, fg=Constants.COLOUR_TEXT,
+        self.main_title_label = Label(self.window,
+                                      text=Constants.TEXT_MAIN_TITLE,
+                                      bg=Constants.COLOUR_BACKGROUND,
+                                      fg=Constants.COLOUR_TEXT,
+                                      font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_TITLE,Constants.FONT_WEIGHT_TITLE),
+                                      pady=20)
+        self.main_description_label = Label(self.window,
+                                            text=Constants.TEXT_MAIN_DESCRIPTION,
+                                            bg=Constants.COLOUR_BACKGROUND,
+                                            fg=Constants.COLOUR_TEXT,
+                                            font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_DESCRIPTION),
+                                            pady=20)
+        self.amount_label = Label(self.window,
+                                  text=Constants.TEXT_AMOUNT,
+                                  bg=Constants.COLOUR_BACKGROUND,
+                                  fg=Constants.COLOUR_TEXT,
                                   font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_REGULAR))
-
         self.account_value_label_text = StringVar()
         self.account_value_label_text.set(Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
         self.account_value_label = Label(self.window, textvariable=self.account_value_label_text, pady=20, padx=60,
-                                         bg=Constants.COLOUR_BACKGROUND, fg=Constants.COLOUR_TEXT, font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_REGULAR))
-
+                                         bg=Constants.COLOUR_BACKGROUND, fg=Constants.COLOUR_TEXT,
+                                         font=(Constants.FONT_TYPEFACE, Constants.FONT_SIZE_REGULAR))
         # tworzenie pól tekstowych
         self.amount_text = StringVar()
         self.amount_entry = Entry(self.window, textvariable=Constants.TEXT_AMOUNT)
-
         # tworzenie przycisków
-        self.close_button = Button(self.window, text=Constants.TEXT_CLOSE_BUTTON, command=lambda: self.exit_platform(), padx=10)
-        self.deposit_amount_button = Button(self.window, text=Constants.TEXT_DEPOSIT_BUTTON,
+        self.close_button = Button(self.window,
+                                   text=Constants.TEXT_CLOSE_BUTTON,
+                                   command=lambda: self.exit_platform(),
+                                   padx=10)
+        self.deposit_amount_button = Button(self.window,
+                                            text=Constants.TEXT_DEPOSIT_BUTTON,
                                             command=lambda: Transfer(self.window, Constants.STATE_DEPOSIT))
-        self.withdraw_amount_button = Button(self.window, text=Constants.TEXT_WITHDRAW_BUTTON,
+        self.withdraw_amount_button = Button(self.window,
+                                             text=Constants.TEXT_WITHDRAW_BUTTON,
                                              command=lambda: Transfer(self.window, Constants.STATE_WITHDRAWAL))
-
-        self.show_widgets()  # wyświetlenie startowych widżetów
 
     def show_widgets(self):
         """Metoda wyświetla na ekranie zdefiniowane widżety"""
@@ -75,7 +104,7 @@ class Platform:
             self.window.destroy()
 
 
-class Transfer(Platform):
+class Transfer(Widgets):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
     account_value = 0
 
@@ -143,7 +172,3 @@ class Transfer(Platform):
                 return False
 
         return True
-
-
-
-

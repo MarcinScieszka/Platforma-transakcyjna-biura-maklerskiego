@@ -1,4 +1,7 @@
 class Data:
+    """Klasa przechowuje listę parametrów firm.
+    Parametry poszczególnej firmy: nazwa firmy, symbol, cena za jedną akcję"""
+
     companies_list = [
         "Apple Inc, AAPL, 505.20",
         "Advanced Micro Devices Inc, AMD, 320.50",

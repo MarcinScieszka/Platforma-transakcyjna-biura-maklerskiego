@@ -67,13 +67,14 @@ class Widgets:
                                   text=Constants.TEXT_AMOUNT,
                                   bg=Constants.COLOUR_BACKGROUND,
                                   fg=Constants.COLOUR_TEXT,
+                                  padx=20,
                                   font=(Constants.FONT_TYPEFACE,
                                         Constants.FONT_SIZE_REGULAR))
         self.account_balance_label_text = StringVar()
         self.account_balance_label_text.set(self.get_current_account_balance_text())
         self.account_balance_label = Label(self.window,
                                            textvariable=self.account_balance_label_text,
-                                           padx=60,
+                                           padx=20,
                                            bg=Constants.COLOUR_BACKGROUND,
                                            fg=Constants.COLOUR_TEXT,
                                            font=(Constants.FONT_TYPEFACE,
@@ -111,7 +112,7 @@ class Widgets:
         self.account_balance_label.place(x=0, y=540)
 
         # wyświetlanie pól tekstowych
-        self.amount_entry.place(x=50, y=500)
+        self.amount_entry.place(x=70, y=500)
 
         # wyświetlanie przycisków
         self.close_button.place(x=700, y=500)
@@ -126,6 +127,11 @@ class Widgets:
 
     def get_current_account_balance_text(self):
         return Constants.TEXT_CURRENT_BALANCE + str(Platform.account_balance) + Constants.TEXT_CURRENCY
+
+    def clear_entry_text(self, entry):
+        """Metoda czyści zawartość pola tekstowego"""
+
+        entry.delete(0, END)
 
     def exit_platform(self):
         """Metoda zamyka główne okno aplikacji."""
@@ -149,8 +155,6 @@ class Transfer(Widgets):
     def handle_transfer(self, state):
         """Metoda obsługuje proces transakcji"""
 
-        # TODO:make a switch?
-
         if self.state == Constants.STATE_WITHDRAWAL_ALL:
             self.withdraw_all()
         else:
@@ -163,7 +167,8 @@ class Transfer(Widgets):
                     self.deposit(amount)
                 if self.state == Constants.STATE_WITHDRAWAL:
                     self.withdraw(amount)
-
+            else:
+                self.clear_entry_text(self.widget_object.amount_entry)
 
     def deposit(self, amount):
         """Metoda odpowiedzialna za wpłatę środków na konto"""
@@ -175,6 +180,7 @@ class Transfer(Widgets):
             messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
             update_label(self.widget_object.account_balance_label_text,
                          self.get_current_account_balance_text())
+            self.clear_entry_text(self.widget_object.amount_entry)
 
     def withdraw(self, amount):
         """Metoda odpowiedzialna za wypłatę środków z konta"""
@@ -186,12 +192,13 @@ class Transfer(Widgets):
             messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
             update_label(self.widget_object.account_balance_label_text,
                          self.get_current_account_balance_text())
+            self.clear_entry_text(self.widget_object.amount_entry)
 
     def withdraw_all(self):
         """Metoda odpowiedzialna za wypłatę wszystkich środków z konta"""
 
         if Platform.account_balance == 0:
-            messagebox.showinfo("Informacja", "Konto nie posiada wystarczających środków do wypłaty")
+            return
         else:
             response = messagebox.askokcancel("Potwierdź wypłatę wszystkich środków",
                                               'Czy na pewno chcesz wypłacić {} zł?'.format(Platform.account_balance))
@@ -209,6 +216,9 @@ class Transfer(Widgets):
 
     def verify(self, amount, state):
         """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty"""
+
+        if len(amount) == 0:  # użytkownik nie podał żadnej kwoty
+            return False  # ignorujemy żądanie
 
         try:
             amount = float(amount)

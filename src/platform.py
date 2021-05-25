@@ -20,6 +20,8 @@ def update_label(label_text_var, label_text):
 class Platform:
     """Główna klasa platformy transakcyjnej"""
 
+    account_balance = 0
+
     def __init__(self, window):
         self.window = window
         CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
@@ -67,15 +69,15 @@ class Widgets:
                                   fg=Constants.COLOUR_TEXT,
                                   font=(Constants.FONT_TYPEFACE,
                                         Constants.FONT_SIZE_REGULAR))
-        self.account_value_label_text = StringVar()
-        self.account_value_label_text.set(Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
-        self.account_value_label = Label(self.window,
-                                         textvariable=self.account_value_label_text,
-                                         padx=60,
-                                         bg=Constants.COLOUR_BACKGROUND,
-                                         fg=Constants.COLOUR_TEXT,
-                                         font=(Constants.FONT_TYPEFACE,
-                                               Constants.FONT_SIZE_REGULAR))
+        self.account_balance_label_text = StringVar()
+        self.account_balance_label_text.set(self.get_current_account_balance_text())
+        self.account_balance_label = Label(self.window,
+                                           textvariable=self.account_balance_label_text,
+                                           padx=60,
+                                           bg=Constants.COLOUR_BACKGROUND,
+                                           fg=Constants.COLOUR_TEXT,
+                                           font=(Constants.FONT_TYPEFACE,
+                                                 Constants.FONT_SIZE_REGULAR))
 
         # tworzenie pól tekstowych
         self.amount_text = StringVar()
@@ -106,7 +108,7 @@ class Widgets:
         self.window.rowconfigure(1, weight=1)  # umieszczenie etykiet tytułowych u góry okna
 
         self.amount_label.place(x=0, y=500)
-        self.account_value_label.place(x=0, y=540)
+        self.account_balance_label.place(x=0, y=540)
 
         # wyświetlanie pól tekstowych
         self.amount_entry.place(x=50, y=500)
@@ -122,6 +124,9 @@ class Widgets:
 
         Transfer(self, self.window, state)
 
+    def get_current_account_balance_text(self):
+        return Constants.TEXT_CURRENT_BALANCE + str(Platform.account_balance) + Constants.TEXT_CURRENCY
+
     def exit_platform(self):
         """Metoda zamyka główne okno aplikacji."""
 
@@ -132,7 +137,6 @@ class Widgets:
 
 class Transfer(Widgets):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
-    account_value = 0
 
     # TODO: clear textbox after successful transfer
 
@@ -140,53 +144,63 @@ class Transfer(Widgets):
         super().__init__(window)
         self.widget_object = widget_object
         self.state = state
-
         self.handle_transfer(self.state)
 
     def handle_transfer(self, state):
         """Metoda obsługuje proces transakcji"""
-        amount = self.get_amount()
-        is_correct = self.verify(amount, state)
 
-        if is_correct:
-            amount = round(float(amount), 2)  # kwota jest poprawna, zaokrąglamy ją do dwóch miejsc po przecinku
-            if self.state == Constants.STATE_DEPOSIT:
-                self.deposit(amount)
-            if self.state == Constants.STATE_WITHDRAWAL:
-                self.withdraw(amount)
-            if self.state == Constants.STATE_WITHDRAWAL_ALL:
-                self.withdraw_all()
+        # TODO:make a switch?
+
+        if self.state == Constants.STATE_WITHDRAWAL_ALL:
+            self.withdraw_all()
+        else:
+            amount = self.get_amount()
+            is_correct = self.verify(amount, state)
+
+            if is_correct:
+                amount = round(float(amount), 2)  # kwota jest poprawna, zaokrąglamy ją do dwóch miejsc po przecinku
+                if self.state == Constants.STATE_DEPOSIT:
+                    self.deposit(amount)
+                if self.state == Constants.STATE_WITHDRAWAL:
+                    self.withdraw(amount)
+
 
     def deposit(self, amount):
         """Metoda odpowiedzialna za wpłatę środków na konto"""
 
         response = messagebox.askokcancel("Potwierdź wpłatę", 'Czy na pewno chcesz wpłacić {} zł?'.format(amount))
         if response == 1:  # użytkownik potwierdził chęć wpłaty na konto
-            Transfer.account_value += amount
-            Transfer.account_value = round(Transfer.account_value, 2)
+            Platform.account_balance += amount
+            Platform.account_balance = round(Platform.account_balance, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
-            update_label(self.widget_object.account_value_label_text,
-                         Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
+            update_label(self.widget_object.account_balance_label_text,
+                         self.get_current_account_balance_text())
 
     def withdraw(self, amount):
         """Metoda odpowiedzialna za wypłatę środków z konta"""
+
         response = messagebox.askokcancel("Potwierdź wypłatę", 'Czy na pewno chcesz wypłacić {} zł?'.format(amount))
         if response == 1:  # użytkownik potwierdził chęć wypłaty na konto
-            Transfer.account_value -= amount
-            Transfer.account_value = round(Transfer.account_value, 2)
+            Platform.account_balance -= amount
+            Platform.account_balance = round(Platform.account_balance, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
-            update_label(self.widget_object.account_value_label_text,
-                         Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
+            update_label(self.widget_object.account_balance_label_text,
+                         self.get_current_account_balance_text())
 
     def withdraw_all(self):
         """Metoda odpowiedzialna za wypłatę wszystkich środków z konta"""
-        response = messagebox.askokcancel("Potwierdź wypłatę wszystkich środków", 'Czy na pewno chcesz wypłacić {} zł?'.format(Transfer.account_value))
-        if response == 1:  # użytkownik potwierdził chęć wypłaty wszystkich środków
-            withrawal_amount = Transfer.account_value
-            Transfer.account_value = 0
-            messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(withrawal_amount))
-            update_label(self.widget_object.account_value_label_text,
-                         Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
+
+        if Platform.account_balance == 0:
+            messagebox.showinfo("Informacja", "Konto nie posiada wystarczających środków do wypłaty")
+        else:
+            response = messagebox.askokcancel("Potwierdź wypłatę wszystkich środków",
+                                              'Czy na pewno chcesz wypłacić {} zł?'.format(Platform.account_balance))
+            if response == 1:  # użytkownik potwierdził chęć wypłaty wszystkich środków
+                withdrawal_amount = Platform.account_balance
+                Platform.account_balance = 0
+                messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(withdrawal_amount))
+                update_label(self.widget_object.account_balance_label_text,
+                             self.get_current_account_balance_text())
 
     def get_amount(self):
         """Metoda odczytuje kwotę podaną przez użytkownika"""
@@ -210,7 +224,7 @@ class Transfer(Widgets):
             return False
 
         if state == Constants.STATE_WITHDRAWAL:
-            if self.account_value - amount < 0:
+            if Platform.account_balance - amount < 0:
                 show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
                 return False
 

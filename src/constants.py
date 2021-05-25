@@ -6,7 +6,7 @@ class Constants:
     TEXT_CLOSE_BUTTON = 'Wyjdź'
     # TEXT_CONFIRM_BUTTON = 'Zatwierdź'
     TEXT_WITHDRAW_BUTTON = 'Wypłać'
-    TEXT_WITHDRAW_ALL_BUTTON = 'Wypłać dostępne środki'
+    TEXT_WITHDRAW_ALL_BUTTON = 'Wypłać wszystkie środki'
     TEXT_DEPOSIT_BUTTON = 'Wpłać depozyt'
     TEXT_AMOUNT = 'Kwota'
     TEXT_CURRENT_BALANCE = 'Saldo: '

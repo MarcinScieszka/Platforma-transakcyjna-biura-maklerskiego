@@ -134,7 +134,6 @@ class Transfer(Widgets):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
     account_value = 0
 
-    # TODO: implement withdraw_all_funds_button func
     # TODO: clear textbox after successful transfer
 
     def __init__(self, widget_object, window, state):
@@ -155,6 +154,8 @@ class Transfer(Widgets):
                 self.deposit(amount)
             if self.state == Constants.STATE_WITHDRAWAL:
                 self.withdraw(amount)
+            if self.state == Constants.STATE_WITHDRAWAL_ALL:
+                self.withdraw_all()
 
     def deposit(self, amount):
         """Metoda odpowiedzialna za wpłatę środków na konto"""
@@ -174,6 +175,16 @@ class Transfer(Widgets):
             Transfer.account_value -= amount
             Transfer.account_value = round(Transfer.account_value, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
+            update_label(self.widget_object.account_value_label_text,
+                         Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
+
+    def withdraw_all(self):
+        """Metoda odpowiedzialna za wypłatę wszystkich środków z konta"""
+        response = messagebox.askokcancel("Potwierdź wypłatę wszystkich środków", 'Czy na pewno chcesz wypłacić {} zł?'.format(Transfer.account_value))
+        if response == 1:  # użytkownik potwierdził chęć wypłaty wszystkich środków
+            withrawal_amount = Transfer.account_value
+            Transfer.account_value = 0
+            messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(withrawal_amount))
             update_label(self.widget_object.account_value_label_text,
                          Constants.TEXT_CURRENT_BALANCE + str(Transfer.account_value) + Constants.TEXT_CURRENCY)
 

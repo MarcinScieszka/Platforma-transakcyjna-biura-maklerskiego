@@ -37,16 +37,14 @@ class Market:
     def create_available_companies(self):
         available_companies = DataProvider.get_companies()
         offset = 0
-        for company in available_companies:
-            Label(self.window,
-                  text=company.get_name() + company.get_symbol() + company.get_price(),
-                  bg='grey',
-                  fg=Constants.COLOUR_TEXT,
-                  font=('bold', 10)).place(x=20, y=200 + offset)
-            Button(self.window,
-                   text="Kup",
-                   command=lambda: self.buy_stock(company)).place(x=280, y=200 + offset)
 
+        for company in available_companies:
+            Button(self.window,
+                   background='#464646',
+                   fg='White',
+                   bd=3,
+                   text=company.get_name() + company.get_symbol() + company.get_price()).place(x=20, y=200 + offset)
+            #         TODO: get_company_description_text
             offset += 30
 
     def buy_stock(self, company):

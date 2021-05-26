@@ -25,8 +25,33 @@ class Platform:
     def __init__(self, window):
         self.window = window
         CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
-        DataProvider.get_companies()
         Widgets(window)
+        Market(window)
+
+
+class Market:
+    def __init__(self, window):
+        self.window = window
+        self.create_available_companies()
+
+    def create_available_companies(self):
+        available_companies = DataProvider.get_companies()
+        offset = 0
+        for company in available_companies:
+            Label(self.window,
+                  text=company.get_name() + company.get_symbol() + company.get_price(),
+                  bg='grey',
+                  fg=Constants.COLOUR_TEXT,
+                  font=('bold', 10)).place(x=20, y=200 + offset)
+            Button(self.window,
+                   text="Kup",
+                   command=lambda: self.buy_stock(company)).place(x=280, y=200 + offset)
+
+            offset += 30
+
+    def buy_stock(self, company):
+        # TODO:implement
+        pass
 
 
 class Widgets:

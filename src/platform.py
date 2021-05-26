@@ -5,22 +5,26 @@ from src.data_provider import DataProvider
 from src.gui import CreateGui
 
 
-def show_error(error_message):
-    """Wyświetlenie okna z komunikatem błędu."""
+class Auxiliary:
+    """Klasa zawiera zbiór metod pomocniczych, używanych przez poszczególne elementy platformy"""
 
-    messagebox.showerror(Constants.MESSAGE_ERROR, error_message)
+    @classmethod
+    def show_error(cls, error_message):
+        """Wyświetlenie okna z komunikatem błędu."""
 
+        messagebox.showerror(Constants.MESSAGE_ERROR, error_message)
 
-def update_label(label_text_var, label_text):
-    """Aktualizacja nazwy danej etykiety"""
+    @classmethod
+    def update_label(cls, label_text_var, label_text):
+        """Aktualizacja nazwy danej etykiety"""
 
-    label_text_var.set(label_text)
+        label_text_var.set(label_text)
 
 
 class Platform:
     """Główna klasa platformy transakcyjnej"""
 
-    account_balance = 0
+    account_balance = 0  # aktualny stan wolnych środków na konice
 
     def __init__(self, window):
         self.window = window
@@ -30,6 +34,8 @@ class Platform:
 
 
 class Market:
+    """Klasa obsługująca zakup akcji"""
+
     def __init__(self, window):
         self.window = window
         self.create_available_companies()
@@ -39,7 +45,9 @@ class Market:
                                    bd=0,
                                    relief=RAISED,
                                    cursor="hand2",
-                                   text="Zakup akcje").place(x=20, y=200)
+                                   text="Zakup akcje")
+
+        buy_shares_button.place(x=20, y=200)
 
     def create_available_companies(self):
         available_companies = DataProvider.get_companies()
@@ -51,7 +59,7 @@ class Market:
         for company in available_companies:
             companies_listbox.insert(END, company.get_name() + company.get_symbol() + company.get_price())
 
-            # TODO: get_company_description_text
+            # TODO: get_company_description_text zamiast stringa
             offset += 30
 
     def buy_stock(self, company):
@@ -67,7 +75,7 @@ class Widgets:
     def __init__(self, window):
         self.window = window
 
-        if Widgets.count == 0:
+        if Widgets.count == 0:  # zapewniamy jednokrotne tworzenie widżetów
             self.create_widgets()  # tworzenie widżetów
             self.show_widgets()  # wyświetlenie startowych widżetów
 
@@ -175,7 +183,7 @@ class Widgets:
             self.window.destroy()
 
 
-class Transfer(Widgets):
+class Transfer(Widgets, Auxiliary):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
 
     # TODO: clear textbox after successful transfer
@@ -212,7 +220,7 @@ class Transfer(Widgets):
             Platform.account_balance += amount
             Platform.account_balance = round(Platform.account_balance, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
-            update_label(self.widget_object.account_balance_label_text,
+            self.update_label(self.widget_object.account_balance_label_text,
                          self.get_current_account_balance_text())
             self.clear_entry_text(self.widget_object.amount_entry)
 
@@ -224,7 +232,7 @@ class Transfer(Widgets):
             Platform.account_balance -= amount
             Platform.account_balance = round(Platform.account_balance, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
-            update_label(self.widget_object.account_balance_label_text,
+            self.update_label(self.widget_object.account_balance_label_text,
                          self.get_current_account_balance_text())
             self.clear_entry_text(self.widget_object.amount_entry)
 
@@ -240,7 +248,7 @@ class Transfer(Widgets):
                 withdrawal_amount = Platform.account_balance
                 Platform.account_balance = 0
                 messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(withdrawal_amount))
-                update_label(self.widget_object.account_balance_label_text,
+                self.update_label(self.widget_object.account_balance_label_text,
                              self.get_current_account_balance_text())
 
     def get_amount(self):
@@ -257,11 +265,11 @@ class Transfer(Widgets):
         try:
             amount = float(amount)
         except ValueError:
-            show_error(Constants.MESSAGE_ERROR_VALUE)
+            self.show_error(Constants.MESSAGE_ERROR_VALUE)
             return False
 
         if amount < 0:
-            show_error(Constants.MESSAGE_ERROR_VALUE)
+            self.show_error(Constants.MESSAGE_ERROR_VALUE)
             return False
 
         if amount == 0:
@@ -269,7 +277,7 @@ class Transfer(Widgets):
 
         if state == Constants.STATE_WITHDRAWAL:
             if Platform.account_balance - amount < 0:
-                show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
+                self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
                 return False
 
         return True

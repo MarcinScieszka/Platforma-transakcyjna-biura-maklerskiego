@@ -33,18 +33,25 @@ class Market:
     def __init__(self, window):
         self.window = window
         self.create_available_companies()
+        buy_shares_button = Button(self.window,
+                                   background='#464646',
+                                   fg='White',
+                                   bd=0,
+                                   relief=RAISED,
+                                   cursor="hand2",
+                                   text="Zakup akcje").place(x=20, y=200)
 
     def create_available_companies(self):
         available_companies = DataProvider.get_companies()
         offset = 0
 
+        companies_listbox = Listbox(self.window)
+        companies_listbox.place(x=300, y=300)
+
         for company in available_companies:
-            Button(self.window,
-                   background='#464646',
-                   fg='White',
-                   bd=3,
-                   text=company.get_name() + company.get_symbol() + company.get_price()).place(x=20, y=200 + offset)
-            #         TODO: get_company_description_text
+            companies_listbox.insert(END, company.get_name() + company.get_symbol() + company.get_price())
+
+            # TODO: get_company_description_text
             offset += 30
 
     def buy_stock(self, company):
@@ -110,16 +117,20 @@ class Widgets:
         # tworzenie przycisków
         self.close_button = Button(self.window,
                                    text=Constants.TEXT_CLOSE_BUTTON,
+                                   cursor="hand2",
                                    command=lambda: self.exit_platform(),
                                    padx=10)
         self.deposit_amount_button = Button(self.window,
                                             text=Constants.TEXT_DEPOSIT_BUTTON,
+                                            cursor="hand2",
                                             command=lambda: self.execute_transfer(Constants.STATE_DEPOSIT))
         self.withdraw_amount_button = Button(self.window,
                                              text=Constants.TEXT_WITHDRAW_BUTTON,
+                                             cursor="hand2",
                                              command=lambda: self.execute_transfer(Constants.STATE_WITHDRAWAL))
         self.withdraw_all_funds_button = Button(self.window,
                                                 text=Constants.TEXT_WITHDRAW_ALL_BUTTON,
+                                                cursor="hand2",
                                                 command=lambda: self.execute_transfer(Constants.STATE_WITHDRAWAL_ALL))
 
     def show_widgets(self):

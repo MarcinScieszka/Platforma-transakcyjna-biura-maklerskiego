@@ -3,6 +3,7 @@ from tkinter import messagebox
 from src.constants import Constants
 from src.data_provider import DataProvider
 from src.gui import CreateGui
+import functools
 
 
 class Auxiliary:
@@ -31,38 +32,55 @@ class Platform:
         CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
         Widgets(window)
         Market(window)
+        # TODO: hovering over buttons changes their colour
 
 
 class Market:
     """Klasa obsługująca zakup akcji"""
 
     def __init__(self, window):
+        self.available_companies = DataProvider.get_companies()
         self.window = window
-        self.create_available_companies()
-        buy_shares_button = Button(self.window,
-                                   background='#464646',
-                                   fg='White',
-                                   bd=0,
-                                   relief=RAISED,
-                                   cursor="hand2",
-                                   text="Zakup akcje")
 
-        buy_shares_button.place(x=20, y=200)
+        # stworzenie i wyświetlenie listy dostępnych firm
+        self.companies_listbox = Listbox(self.window)
+        self.companies_listbox.place(x=300, y=300)
+        # TODO: add scrollbar to listbox
 
-    def create_available_companies(self):
-        available_companies = DataProvider.get_companies()
+        self.insert_available_companies()
+
+        # TODO: handle error - clicking button when no item in listbox is selected
+        self.buy_shares_button = Button(self.window,
+                                        background='#464646',
+                                        fg='White',
+                                        bd=0,
+                                        relief=RAISED,
+                                        cursor="hand2",
+                                        text="Zakup akcje",
+                                        command=lambda: self.select_company())
+
+        self.buy_shares_button.place(x=20, y=200)
+
+    def insert_available_companies(self):
         offset = 0
+        for company in self.available_companies:
+            self.companies_listbox.insert(END, company.get_name() + company.get_symbol() + company.get_price())
+            # TODO: replace string with get_company_description_text
 
-        companies_listbox = Listbox(self.window)
-        companies_listbox.place(x=300, y=300)
-
-        for company in available_companies:
-            companies_listbox.insert(END, company.get_name() + company.get_symbol() + company.get_price())
-
-            # TODO: get_company_description_text zamiast stringa
             offset += 30
 
+    def select_company(self):
+        """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
+
+        selection_tuple = self.companies_listbox.curselection()  # odczytujemy indeks wybranego elementu z listy firm - wynik jest w postaci jednoelementowej krotki
+        index = functools.reduce(lambda a: a, selection_tuple)  # zamiana typu tuple na int
+        company = self.available_companies[index]
+        print(company.get_name())
+        # TODO: ability to deselect company from a list
+
     def buy_stock(self, company):
+        """Metoda obsługuje zakup akcji"""
+
         # TODO:implement
         pass
 
@@ -221,7 +239,7 @@ class Transfer(Widgets, Auxiliary):
             Platform.account_balance = round(Platform.account_balance, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
             self.update_label(self.widget_object.account_balance_label_text,
-                         self.get_current_account_balance_text())
+                              self.get_current_account_balance_text())
             self.clear_entry_text(self.widget_object.amount_entry)
 
     def withdraw(self, amount):
@@ -233,7 +251,7 @@ class Transfer(Widgets, Auxiliary):
             Platform.account_balance = round(Platform.account_balance, 2)
             messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
             self.update_label(self.widget_object.account_balance_label_text,
-                         self.get_current_account_balance_text())
+                              self.get_current_account_balance_text())
             self.clear_entry_text(self.widget_object.amount_entry)
 
     def withdraw_all(self):
@@ -249,7 +267,7 @@ class Transfer(Widgets, Auxiliary):
                 Platform.account_balance = 0
                 messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(withdrawal_amount))
                 self.update_label(self.widget_object.account_balance_label_text,
-                             self.get_current_account_balance_text())
+                                  self.get_current_account_balance_text())
 
     def get_amount(self):
         """Metoda odczytuje kwotę podaną przez użytkownika"""

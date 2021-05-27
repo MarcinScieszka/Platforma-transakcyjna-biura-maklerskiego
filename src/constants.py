@@ -16,7 +16,7 @@ class Constants:
     COLOUR_BACKGROUND = '#2A2A2E'
     COLOUR_TEXT = '#FAFAFA'
 
-    FONT_TYPEFACE = 'Arial'
+    FONT_TYPEFACE = 'Ubuntu'
     FONT_WEIGHT_TITLE = 'bold'
     FONT_SIZE_TITLE = 20
     FONT_SIZE_DESCRIPTION = 14

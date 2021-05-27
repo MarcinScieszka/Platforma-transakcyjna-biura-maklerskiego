@@ -34,3 +34,6 @@ class Constants:
     MESSAGE_CONFIRM_EXIT_TEXT = 'Czy na pewno chcesz opuścić platformę?'
 
     DATA_SEPARATOR = ','
+
+    BUY_ORDER = 'Zlecenie zakupu akcji'
+    SELL_ORDER = 'Zlecenie sprzedaży akcji'

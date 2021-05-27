@@ -30,6 +30,7 @@ class Auxiliary:
 
 class Account:
     account_balance = 0  # aktualny stan wolnych środków na konice
+    purchased_stock_list = []  # lista posiadanych firm przez użytkownika
 
     def get_current_account_balance_text(self):
         return Constants.TEXT_CURRENT_BALANCE + str(self.get_account_balance()) + Constants.TEXT_CURRENCY
@@ -62,7 +63,7 @@ class Platform:
 
 
 class Market:
-    """Klasa obsługująca zakup akcji"""
+    """Klasa zarządza listą firm, których akcje można zakupić"""
 
     def __init__(self, window):
         self.available_companies = DataProvider.get_companies()
@@ -86,6 +87,10 @@ class Market:
         self.companies_listbox.place(x=150, y=250)
 
         self.insert_available_companies()
+
+        # pole tekstowe umożliwiające wybór ilości akcji danej firmy
+        self.stock_amount_spinbox = Spinbox(self.window, from_=1, to=5)
+        self.stock_amount_spinbox.place(x=400, y=350)
 
         self.buy_shares_button = Button(self.window,
                                         background='#f1f1f1',
@@ -112,12 +117,34 @@ class Market:
         selection_tuple = self.companies_listbox.curselection()  # odczytujemy indeks wybranego elementu z listy firm - wynik jest w postaci jednoelementowej krotki
         index = functools.reduce(lambda a: a, selection_tuple)  # zamiana typu tuple na int
         company = self.available_companies[index]
-        print(company.get_name())
 
-    def buy_stock(self, company):
-        """Metoda obsługuje zakup akcji"""
+        stock_amount = self.stock_amount_spinbox.get()
 
-        # TODO:implement
+        NewOrder(company, stock_amount, Constants.BUY_ORDER)
+
+
+class NewOrder(Account):
+    """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
+
+    def __init__(self, company, stock_amount, type):  # stock_amount
+        self.company = company
+        self.stock_amount = stock_amount
+        self.type = type
+
+        if type == Constants.BUY_ORDER:
+            self.handle_stock_buy_order()
+        if type == Constants.SELL_ORDER:
+            self.handle_stock_sell_order()
+
+    def handle_stock_buy_order(self):
+        """Obsługa zlecenia zakupu akcji"""
+
+        print("company: ", self.company.get_name())
+        print("stock amount: ", self.stock_amount)
+
+    def handle_stock_sell_order(self):
+        """Obsługa zlecenia sprzedaży akcji"""
+
         pass
 
 

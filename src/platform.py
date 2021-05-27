@@ -6,6 +6,18 @@ from src.gui import CreateGui
 import functools
 
 
+class Platform:
+    """Główna klasa platformy transakcyjnej"""
+
+    def __init__(self, window):
+        self.window = window
+        CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
+        BaseWidgets(window)
+        Account()
+        Market(window)
+        # TODO: hovering over buttons changes their colour
+
+
 class Auxiliary:
     """Klasa zawiera zbiór metod pomocniczych, używanych przez poszczególne elementy platformy"""
 
@@ -28,6 +40,30 @@ class Auxiliary:
         entry.delete(0, END)
 
 
+class VerifyUserInput(Auxiliary):
+    """Klasa weryfikuję poprawność danych wprowadzonych przez użytkownika"""
+
+    @classmethod
+    def verify_user_input(cls, user_input):
+        if len(user_input) == 0:  # użytkownik nie podał żadnej wartości
+            return False  # ignorujemy żądanie
+
+        try:
+            amount = float(user_input)
+        except ValueError:
+            cls.show_error(Constants.MESSAGE_ERROR_VALUE)  # podana przez użytkownika wartość nie jest poprawną liczbą
+            return False
+
+        if amount < 0:
+            cls.show_error(Constants.MESSAGE_ERROR_VALUE)
+            return False
+
+        if amount == 0:
+            return False
+
+        return True
+
+
 class Account:
     account_balance = 0  # aktualny stan wolnych środków na konice
     purchased_stock_list = []  # lista posiadanych firm przez użytkownika
@@ -36,7 +72,7 @@ class Account:
         return Constants.TEXT_CURRENT_BALANCE + str(self.get_account_balance()) + Constants.TEXT_CURRENCY
 
     def get_account_balance(self):
-        return Account.account_balance
+        return self.account_balance
 
     def set_account_balance(self, amount):
         Account.account_balance = amount
@@ -50,18 +86,6 @@ class Account:
         self.set_account_balance(round(self.get_account_balance(), 2))
 
 
-class Platform:
-    """Główna klasa platformy transakcyjnej"""
-
-    def __init__(self, window):
-        self.window = window
-        CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
-        Widgets(window)
-        Account()
-        Market(window)
-        # TODO: hovering over buttons changes their colour
-
-
 class Market:
     """Klasa zarządza listą firm, których akcje można zakupić"""
 
@@ -72,6 +96,8 @@ class Market:
         # TODO: add scrollbar to listbox
         # TODO: ability to deselect company from a list or show popup-like thing
         # TODO: handle error - clicking button when no item in listbox is selected
+        # TODO: sell button
+        # TODO: remove ability to buy when not selected
 
         # stworzenie i wyświetlenie listy dostępnych firm
         self.companies_listbox = Listbox(self.window,
@@ -99,7 +125,7 @@ class Market:
                                         # relief=RAISED, # relief can be flat, groove, raised, ridge, solid, or sunken
                                         cursor="hand2",
                                         text="Zakup akcje",
-                                        command=lambda: self.select_company())
+                                        command=lambda: self.select_company(Constants.BUY_ORDER))
 
         self.buy_shares_button.place(x=20, y=200)
 
@@ -111,7 +137,7 @@ class Market:
 
             offset += 30
 
-    def select_company(self):
+    def select_company(self, order_type):
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
 
         selection_tuple = self.companies_listbox.curselection()  # odczytujemy indeks wybranego elementu z listy firm - wynik jest w postaci jednoelementowej krotki
@@ -120,21 +146,24 @@ class Market:
 
         stock_amount = self.stock_amount_spinbox.get()
 
-        NewOrder(company, stock_amount, Constants.BUY_ORDER)
+        NewOrder(company, stock_amount, order_type)
 
 
-class NewOrder(Account):
+class NewOrder(Account, VerifyUserInput):
     """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
 
-    def __init__(self, company, stock_amount, type):  # stock_amount
+    def __init__(self, company, stock_amount, order_type):  # stock_amount
         self.company = company
         self.stock_amount = stock_amount
-        self.type = type
+        self.order_type = order_type
 
-        if type == Constants.BUY_ORDER:
-            self.handle_stock_buy_order()
-        if type == Constants.SELL_ORDER:
-            self.handle_stock_sell_order()
+        verified = self.verify_user_input(stock_amount)
+
+        if verified:
+            if order_type == Constants.BUY_ORDER:
+                self.handle_stock_buy_order()
+            if order_type == Constants.SELL_ORDER:
+                self.handle_stock_sell_order()
 
     def handle_stock_buy_order(self):
         """Obsługa zlecenia zakupu akcji"""
@@ -148,7 +177,7 @@ class NewOrder(Account):
         pass
 
 
-class Widgets(Account):
+class BaseWidgets(Account):
     """Klasa obsługująca widżety"""
 
     count = 0  # zmienna zlicza ilość wywołań klasy, dzięki czemu możemy tworzyć widżety tylko podczas pierwszego wywołania klasy
@@ -156,7 +185,7 @@ class Widgets(Account):
     def __init__(self, window):
         self.window = window
 
-        if Widgets.count == 0:  # zapewniamy jednokrotne tworzenie widżetów
+        if BaseWidgets.count == 0:  # zapewniamy jednokrotne tworzenie widżetów
 
             # tworzenie etykiet
             self.main_title_label = Label(self.window,
@@ -202,6 +231,7 @@ class Widgets(Account):
                                        cursor="hand2",
                                        command=lambda: self.exit_platform(),
                                        padx=10)
+
             self.deposit_amount_button = Button(self.window,
                                                 text=Constants.TEXT_DEPOSIT_BUTTON,
                                                 cursor="hand2",
@@ -218,7 +248,7 @@ class Widgets(Account):
 
             self.show_widgets()  # wyświetlenie startowych widżetów
 
-        Widgets.count += 1
+        BaseWidgets.count += 1
 
     def show_widgets(self):
         """Metoda wyświetla na ekranie zdefiniowane widżety"""
@@ -254,7 +284,7 @@ class Widgets(Account):
             self.window.destroy()
 
 
-class Transfer(Widgets, Auxiliary, Account):
+class Transfer(VerifyUserInput, Auxiliary, BaseWidgets, Account):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
 
     # TODO: clear textbox after successful transfer
@@ -272,7 +302,7 @@ class Transfer(Widgets, Auxiliary, Account):
             self.withdraw_all()
         else:
             amount = self.get_amount()
-            is_correct = self.verify(amount, state)
+            is_correct = self.verify_amount(amount, state)
             if is_correct:
                 amount = round(float(amount), 2)  # kwota jest poprawna, zaokrąglamy ją do dwóch miejsc po przecinku
                 if self.state == Constants.STATE_DEPOSIT:
@@ -327,23 +357,14 @@ class Transfer(Widgets, Auxiliary, Account):
 
         return self.widget_object.amount_entry.get()
 
-    def verify(self, amount, state):
+    def verify_amount(self, amount, state):
         """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty"""
 
-        if len(amount) == 0:  # użytkownik nie podał żadnej kwoty
-            return False  # ignorujemy żądanie
+        verified = self.verify_user_input(amount)
 
-        try:
+        if verified:
             amount = float(amount)
-        except ValueError:
-            self.show_error(Constants.MESSAGE_ERROR_VALUE)
-            return False
-
-        if amount < 0:
-            self.show_error(Constants.MESSAGE_ERROR_VALUE)
-            return False
-
-        if amount == 0:
+        else:
             return False
 
         if state == Constants.STATE_WITHDRAWAL:

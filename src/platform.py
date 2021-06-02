@@ -102,7 +102,7 @@ class Market:
         # stworzenie i wyświetlenie listy dostępnych firm
         self.companies_listbox = Listbox(self.window,
                                          bg=Constants.COLOUR_BACKGROUND,
-                                         selectbackground=Constants.COLOUR_BACKGROUND,
+                                         selectbackground='purple',
                                          fg='white',
                                          width=40,
                                          font=Constants.FONT_TYPEFACE,
@@ -110,12 +110,13 @@ class Market:
                                          bd=0,
                                          highlightthickness=0)
 
+        self.companies_listbox.bind('<FocusOut>', lambda e: self.companies_listbox.selection_clear(0,END))  # odznaczenie elementu z listy, w momencie utraty skupienia
         self.companies_listbox.place(x=150, y=250)
 
         self.insert_available_companies()
 
         # pole tekstowe umożliwiające wybór ilości akcji danej firmy
-        self.stock_amount_spinbox = Spinbox(self.window, from_=1, to=5)
+        self.stock_amount_spinbox = Spinbox(self.window, from_=1, to=10000)
         self.stock_amount_spinbox.place(x=400, y=350)
 
         self.buy_shares_button = Button(self.window,
@@ -141,12 +142,16 @@ class Market:
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
 
         selection_tuple = self.companies_listbox.curselection()  # odczytujemy indeks wybranego elementu z listy firm - wynik jest w postaci jednoelementowej krotki
+        if len(selection_tuple) == 0:  # żaden element z listy nie został zaznaczony
+            return
+
         index = functools.reduce(lambda a: a, selection_tuple)  # zamiana typu tuple na int
         company = self.available_companies[index]
 
         stock_amount = self.stock_amount_spinbox.get()
 
         NewOrder(company, stock_amount, order_type)
+        self.companies_listbox.selection_clear(0, 'end')  # po dokonaniu transakcji, odznaczamy element z listy
 
 
 class NewOrder(Account, VerifyUserInput):

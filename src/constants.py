@@ -33,9 +33,9 @@ class Constants:
     MESSAGE_CONFIRM_EXIT_TEXT = 'Czy na pewno chcesz opuścić platformę?'
 
     # stałe odnoszące się do statusu transakcji gotówkowych wybranego przez użytkownika
-    STATE_DEPOSIT = 0  # chęć wpłaty
-    STATE_WITHDRAWAL = 1  # chęć wypłaty
-    STATE_WITHDRAWAL_ALL = 2  # chęć wypłaty wszystkich wolnych środków
+    DEPOSIT = 0  # chęć wpłaty
+    WITHDRAWAL = 1  # chęć wypłaty
+    WITHDRAWAL_ALL = 2  # chęć wypłaty wszystkich wolnych środków
 
     # separator danych stosowany podczas tworzenia listy firm
     DATA_SEPARATOR = ','

@@ -2,20 +2,20 @@ from tkinter import *
 from tkinter import messagebox
 from src.constants import Constants
 from src.data_provider import DataProvider
-from src.gui import CreateGui
 import functools
 
 
-class Platform:
-    """Główna klasa platformy transakcyjnej"""
+# from src.gui import CreateGui
 
-    def __init__(self, window):
-        self.window = window
-        CreateGui.create_gui_params(window)  # wywołanie klasy ustawiającej parametry gui
-        BaseWidgets(window)
-        Account()
-        Market(window)
-        # TODO: hovering over buttons changes their colour
+# class Platform:
+#     """Główna klasa platformy transakcyjnej"""
+#     # TODO: subclasses inside Platform ?
+#
+#     def __init__(self, window):
+#         self.window = window
+#         # Account()
+#         # Market(window)
+#         # TODO: hovering over buttons changes their colour
 
 
 class Auxiliary:
@@ -38,6 +38,14 @@ class Auxiliary:
         """Metoda czyści zawartość pola tekstowego"""
 
         entry.delete(0, END)
+
+    @classmethod
+    def exit_platform(cls, window):
+        """Metoda zamyka główne okno aplikacji."""
+
+        confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_EXIT, Constants.MESSAGE_CONFIRM_EXIT_TEXT)
+        if confirmation:
+            window.destroy()
 
 
 class VerifyUserInput(Auxiliary):
@@ -110,7 +118,8 @@ class Market:
                                          bd=0,
                                          highlightthickness=0)
 
-        self.companies_listbox.bind('<FocusOut>', lambda e: self.companies_listbox.selection_clear(0,END))  # odznaczenie elementu z listy, w momencie utraty skupienia
+        self.companies_listbox.bind('<FocusOut>', lambda e: self.companies_listbox.selection_clear(0,
+                                                                                                   END))  # odznaczenie elementu z listy, w momencie utraty skupienia
         self.companies_listbox.place(x=150, y=250)
 
         self.insert_available_companies()
@@ -178,144 +187,34 @@ class NewOrder(Account, VerifyUserInput):
 
     def handle_stock_sell_order(self):
         """Obsługa zlecenia sprzedaży akcji"""
-
         pass
 
 
-class BaseWidgets(Account):
-    """Klasa obsługująca widżety"""
-
-    count = 0  # zmienna zlicza ilość wywołań klasy, dzięki czemu możemy tworzyć widżety tylko podczas pierwszego wywołania klasy
-
-    def __init__(self, window):
-        self.window = window
-
-        if BaseWidgets.count == 0:  # zapewniamy jednokrotne tworzenie widżetów
-
-            # tworzenie etykiet
-            self.main_title_label = Label(self.window,
-                                          text=Constants.TEXT_MAIN_TITLE,
-                                          bg=Constants.COLOUR_BACKGROUND,
-                                          fg=Constants.COLOUR_TEXT,
-                                          font=(
-                                              Constants.FONT_TYPEFACE,
-                                              Constants.FONT_SIZE_TITLE,
-                                              Constants.FONT_WEIGHT_TITLE),
-                                          pady=20)
-            self.main_description_label = Label(self.window,
-                                                text=Constants.TEXT_MAIN_DESCRIPTION,
-                                                bg=Constants.COLOUR_BACKGROUND,
-                                                fg=Constants.COLOUR_TEXT,
-                                                font=(Constants.FONT_TYPEFACE,
-                                                      Constants.FONT_SIZE_DESCRIPTION),
-                                                pady=20)
-            self.amount_label = Label(self.window,
-                                      text=Constants.TEXT_AMOUNT,
-                                      bg=Constants.COLOUR_BACKGROUND,
-                                      fg=Constants.COLOUR_TEXT,
-                                      padx=20,
-                                      font=(Constants.FONT_TYPEFACE,
-                                            Constants.FONT_SIZE_REGULAR))
-            self.account_balance_label_text = StringVar()
-            self.account_balance_label_text.set(self.get_current_account_balance_text())
-            self.account_balance_label = Label(self.window,
-                                               textvariable=self.account_balance_label_text,
-                                               padx=20,
-                                               bg=Constants.COLOUR_BACKGROUND,
-                                               fg=Constants.COLOUR_TEXT,
-                                               font=(Constants.FONT_TYPEFACE,
-                                                     Constants.FONT_SIZE_REGULAR))
-
-            # tworzenie pól tekstowych
-            self.amount_text = StringVar()
-            self.amount_entry = Entry(self.window, textvariable=Constants.TEXT_AMOUNT)
-
-            # tworzenie przycisków
-            self.close_button = Button(self.window,
-                                       text=Constants.TEXT_CLOSE_BUTTON,
-                                       cursor="hand2",
-                                       command=lambda: self.exit_platform(),
-                                       padx=10)
-
-            self.deposit_amount_button = Button(self.window,
-                                                text=Constants.TEXT_DEPOSIT_BUTTON,
-                                                cursor="hand2",
-                                                command=lambda: self.execute_transfer(Constants.STATE_DEPOSIT))
-            self.withdraw_amount_button = Button(self.window,
-                                                 text=Constants.TEXT_WITHDRAW_BUTTON,
-                                                 cursor="hand2",
-                                                 command=lambda: self.execute_transfer(Constants.STATE_WITHDRAWAL))
-            self.withdraw_all_funds_button = Button(self.window,
-                                                    text=Constants.TEXT_WITHDRAW_ALL_BUTTON,
-                                                    cursor="hand2",
-                                                    command=lambda: self.execute_transfer(
-                                                        Constants.STATE_WITHDRAWAL_ALL))
-
-            self.show_widgets()  # wyświetlenie startowych widżetów
-
-        BaseWidgets.count += 1
-
-    def show_widgets(self):
-        """Metoda wyświetla na ekranie zdefiniowane widżety"""
-
-        # wyświetlanie etykiet
-        self.main_title_label.grid(row=0, column=0, sticky='nsew')
-        self.main_description_label.grid(row=1, column=0, sticky='new')
-        self.window.columnconfigure(0, weight=1)  # umieszczenie etykiet tytułowych na środku
-        self.window.rowconfigure(1, weight=1)  # umieszczenie etykiet tytułowych u góry okna
-
-        self.amount_label.place(x=0, y=500)
-        self.account_balance_label.place(x=0, y=540)
-
-        # wyświetlanie pól tekstowych
-        self.amount_entry.place(x=70, y=500)
-
-        # wyświetlanie przycisków
-        self.close_button.place(x=700, y=500)
-        self.deposit_amount_button.place(x=200, y=495)
-        self.withdraw_amount_button.place(x=300, y=495)
-        self.withdraw_all_funds_button.place(x=200, y=530)
-
-    def execute_transfer(self, state):
-        """Metoda wywołuje klasę obsługującą transfer pieniężny"""
-
-        Transfer(self, self.window, state)
-
-    def exit_platform(self):
-        """Metoda zamyka główne okno aplikacji."""
-
-        confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_EXIT, Constants.MESSAGE_CONFIRM_EXIT_TEXT)
-        if confirmation:
-            self.window.destroy()
-
-
-class Transfer(VerifyUserInput, Auxiliary, BaseWidgets, Account):
+class Transfer(VerifyUserInput, Auxiliary, Account):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
 
     # TODO: clear textbox after successful transfer
 
-    def __init__(self, widget_object, window, state):
-        super().__init__(window)
-        self.widget_object = widget_object
-        self.state = state
-        self.handle_transfer(self.state)
+    def __init__(self, amount_entry, account_balance_label_text):
+        self.amount_entry = amount_entry
+        self.account_balance_label_text = account_balance_label_text
 
-    def handle_transfer(self, state):
+    def handle_transfer(self, transfer_type):
         """Metoda obsługuje proces transakcji"""
 
-        if self.state == Constants.STATE_WITHDRAWAL_ALL:
+        if transfer_type == Constants.WITHDRAWAL_ALL:
             self.withdraw_all()
         else:
             amount = self.get_amount()
-            is_correct = self.verify_amount(amount, state)
+            is_correct = self.verify_amount(amount, transfer_type)
             if is_correct:
                 amount = round(float(amount), 2)  # kwota jest poprawna, zaokrąglamy ją do dwóch miejsc po przecinku
-                if self.state == Constants.STATE_DEPOSIT:
+                if transfer_type == Constants.DEPOSIT:
                     self.deposit(amount)
-                if self.state == Constants.STATE_WITHDRAWAL:
+                if transfer_type == Constants.WITHDRAWAL:
                     self.withdraw(amount)
             else:
-                self.clear_entry_text(self.widget_object.amount_entry)
+                self.clear_entry_text(self.amount_entry)
 
     def deposit(self, amount):
         """Metoda odpowiedzialna za wpłatę środków na konto"""
@@ -325,9 +224,9 @@ class Transfer(VerifyUserInput, Auxiliary, BaseWidgets, Account):
             self.increase_account_balance(amount)
 
             messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
-            self.update_label(self.widget_object.account_balance_label_text,
+            self.update_label(self.account_balance_label_text,
                               self.get_current_account_balance_text())
-            self.clear_entry_text(self.widget_object.amount_entry)
+            self.clear_entry_text(self.amount_entry)
 
     def withdraw(self, amount):
         """Metoda odpowiedzialna za wypłatę środków z konta"""
@@ -336,9 +235,9 @@ class Transfer(VerifyUserInput, Auxiliary, BaseWidgets, Account):
         if response == 1:  # użytkownik potwierdził chęć wypłaty na konto
             self.decrease_account_balance(amount)
             messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
-            self.update_label(self.widget_object.account_balance_label_text,
+            self.update_label(self.account_balance_label_text,
                               self.get_current_account_balance_text())
-            self.clear_entry_text(self.widget_object.amount_entry)
+            self.clear_entry_text(self.amount_entry)
 
     def withdraw_all(self):
         """Metoda odpowiedzialna za wypłatę wszystkich środków z konta"""
@@ -354,26 +253,26 @@ class Transfer(VerifyUserInput, Auxiliary, BaseWidgets, Account):
                 self.set_account_balance(0)
 
                 messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(withdrawal_amount))
-                self.update_label(self.widget_object.account_balance_label_text,
+                self.update_label(self.account_balance_label_text,
                                   self.get_current_account_balance_text())
 
     def get_amount(self):
         """Metoda odczytuje kwotę podaną przez użytkownika"""
 
-        return self.widget_object.amount_entry.get()
+        return self.amount_entry.get()
 
-    def verify_amount(self, amount, state):
+    def verify_amount(self, amount, transfer_type):
         """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty"""
 
         verified = self.verify_user_input(amount)
 
         if verified:
-            amount = float(amount)
+            verified_amount = float(amount)
         else:
             return False
 
-        if state == Constants.STATE_WITHDRAWAL:
-            if self.get_account_balance() - amount < 0:
+        if transfer_type == Constants.WITHDRAWAL:
+            if self.get_account_balance() - verified_amount < 0:
                 self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
                 return False
 

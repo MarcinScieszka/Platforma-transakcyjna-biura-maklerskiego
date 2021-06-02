@@ -5,8 +5,6 @@ from src.data_provider import DataProvider
 import functools
 
 
-# from src.gui import CreateGui
-
 # class Platform:
 #     """Główna klasa platformy transakcyjnej"""
 #     # TODO: subclasses inside Platform ?
@@ -97,9 +95,10 @@ class Account:
 class Market:
     """Klasa zarządza listą firm, których akcje można zakupić"""
 
-    def __init__(self, window):
+    def __init__(self, stock_amount_spinbox, companies_listbox):
         self.available_companies = DataProvider.get_companies()
-        self.window = window
+        self.stock_amount_spinbox = stock_amount_spinbox
+        self.companies_listbox = companies_listbox
 
         # TODO: add scrollbar to listbox
         # TODO: ability to deselect company from a list or show popup-like thing
@@ -107,37 +106,7 @@ class Market:
         # TODO: sell button
         # TODO: remove ability to buy when not selected
 
-        # stworzenie i wyświetlenie listy dostępnych firm
-        self.companies_listbox = Listbox(self.window,
-                                         bg=Constants.COLOUR_BACKGROUND,
-                                         selectbackground='purple',
-                                         fg='white',
-                                         width=40,
-                                         font=Constants.FONT_TYPEFACE,
-                                         cursor='hand2',
-                                         bd=0,
-                                         highlightthickness=0)
-
-        self.companies_listbox.bind('<FocusOut>', lambda e: self.companies_listbox.selection_clear(0,
-                                                                                                   END))  # odznaczenie elementu z listy, w momencie utraty skupienia
-        self.companies_listbox.place(x=150, y=250)
-
-        self.insert_available_companies()
-
-        # pole tekstowe umożliwiające wybór ilości akcji danej firmy
-        self.stock_amount_spinbox = Spinbox(self.window, from_=1, to=10000)
-        self.stock_amount_spinbox.place(x=400, y=350)
-
-        self.buy_shares_button = Button(self.window,
-                                        background='#f1f1f1',
-                                        fg='black',
-                                        bd=0,
-                                        # relief=RAISED, # relief can be flat, groove, raised, ridge, solid, or sunken
-                                        cursor="hand2",
-                                        text="Zakup akcje",
-                                        command=lambda: self.select_company(Constants.BUY_ORDER))
-
-        self.buy_shares_button.place(x=20, y=200)
+        # self.insert_available_companies()
 
     def insert_available_companies(self):
         offset = 0

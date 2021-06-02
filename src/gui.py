@@ -1,13 +1,6 @@
 from src.constants import Constants
 from tkinter import *
-from platform import Auxiliary, Transfer, Account
-
-
-def execute_transfer(transfer_type, amount_entry, account_balance_label_text):
-    """Metoda wywołuje klasę obsługującą transfer pieniężny"""
-
-    transfer = Transfer(amount_entry, account_balance_label_text)
-    transfer.handle_transfer(transfer_type)
+from platform import Auxiliary, Transfer, Account, Market
 
 
 class CreateGui:
@@ -30,9 +23,10 @@ class CreateGui:
         cls.window.title("Platforma transakcyjna")  # nadanie tytułu dla głównego okna
         # TODO: implement window.iconbitmap with .ico
 
+        # TODO: separate widgets by functionality?
         # ---------------------------------------------------------------------------------------------- #
 
-        # tworzenie etykiet
+        # --- tworzenie etykiet --- #
         cls.main_title_label = Label(cls.window,
                                      text=Constants.TEXT_MAIN_TITLE,
                                      bg=Constants.COLOUR_BACKGROUND,
@@ -71,25 +65,34 @@ class CreateGui:
         cls.amount_text = StringVar()
         cls.amount_entry = Entry(cls.window, textvariable=Constants.TEXT_AMOUNT)
 
-        # tworzenie przycisków
+        transfer = Transfer(cls.amount_entry, cls.account_balance_label_text)
+
+        # ---tworzenie przycisków--- #
+
+        # wciśnięcie przycisku powoduje wywołanie metody obsługującej opuszczenie platformy
         cls.close_button = Button(cls.window,
                                   text=Constants.TEXT_CLOSE_BUTTON,
                                   cursor="hand2",
                                   command=lambda: Auxiliary.exit_platform(cls.window),
                                   padx=10)
 
+        # wciśnięcie przycisku wywołuje metodę obsługującą wpłatę pieniędzy na konto
         cls.deposit_amount_button = Button(cls.window,
                                            text=Constants.TEXT_DEPOSIT_BUTTON,
                                            cursor="hand2",
-                                           command=lambda: execute_transfer(Constants.DEPOSIT, cls.amount_entry, cls.account_balance_label_text))
+                                           command=lambda: transfer.handle_transfer(Constants.DEPOSIT))
+
+        # wciśnięcie przycisku wywołuje metodę obsługującą wypłatę pieniędzy z konta
         cls.withdraw_amount_button = Button(cls.window,
                                             text=Constants.TEXT_WITHDRAW_BUTTON,
                                             cursor="hand2",
-                                            command=lambda: execute_transfer(Constants.WITHDRAWAL, cls.amount_entry, cls.account_balance_label_text))
+                                            command=lambda: transfer.handle_transfer(Constants.WITHDRAWAL))
+
+        # wciśnięcie przycisku wywołuje metodę obsługującą wypłatę wszystkich wolnych środków z konta
         cls.withdraw_all_funds_button = Button(cls.window,
                                                text=Constants.TEXT_WITHDRAW_ALL_BUTTON,
                                                cursor="hand2",
-                                               command=lambda: execute_transfer(Constants.WITHDRAWAL_ALL, cls.amount_entry, cls.account_balance_label_text))
+                                               command=lambda: transfer.handle_transfer(Constants.WITHDRAWAL_ALL))
 
         # ---------------------------------------------------------------------------------------------- #
 
@@ -111,5 +114,43 @@ class CreateGui:
         cls.withdraw_amount_button.place(x=300, y=495)
         cls.withdraw_all_funds_button.place(x=200, y=530)
 
-# def show_widgets(self):
-#     """Metoda wyświetla na ekranie zdefiniowane widżety"""
+        # ---------------------------------------------------------------------------------------------- #
+
+        # stworzenie listboxa, który przechowuje listę dostępnych firm
+        cls.companies_listbox = Listbox(cls.window,
+                                        bg=Constants.COLOUR_BACKGROUND,
+                                        selectbackground='purple',
+                                        fg='white',
+                                        width=40,
+                                        font=Constants.FONT_TYPEFACE,
+                                        cursor='hand2',
+                                        bd=0,
+                                        highlightthickness=0)
+
+        # odznaczenie elementu z listy, w momencie utraty skupienia
+        cls.companies_listbox.bind('<FocusOut>', lambda e: cls.companies_listbox.selection_clear(0, END))
+
+        cls.companies_listbox.place(x=150, y=250)
+
+        # ---------------------------------------------------------------------------------------------- #
+
+        # pole tekstowe umożliwiające wybór ilości akcji danej firmy
+        cls.stock_amount_spinbox = Spinbox(cls.window, from_=1, to=10000)
+        cls.stock_amount_spinbox.place(x=400, y=350)
+
+        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox)
+        cls.market.insert_available_companies()
+
+        # wciśnięcie przycisku wywołuje metodę obsługującą wybranie firmy spośród dostępnych
+        cls.buy_shares_button = Button(cls.window,
+                                       background='#f1f1f1',
+                                       fg='black',
+                                       bd=0,
+                                       # relief=RAISED, # relief can be flat, groove, raised, ridge, solid, or sunken
+                                       cursor="hand2",
+                                       text="Zakup akcje",
+                                       command=lambda: cls.market.select_company(Constants.BUY_ORDER))
+
+        cls.buy_shares_button.place(x=20, y=200)
+
+        # ---------------------------------------------------------------------------------------------- #

@@ -62,10 +62,10 @@ class VerifyUserInput(Auxiliary):
             return False
 
         if amount < 0:
-            cls.show_error(Constants.MESSAGE_ERROR_VALUE)
+            cls.show_error(Constants.MESSAGE_ERROR_VALUE)  # użytkownik podał ujemną kwotę
             return False
 
-        if amount == 0:
+        if amount == 0:  # ignorujemy żądanie wpłaty 0zł
             return False
 
         return True
@@ -161,92 +161,134 @@ class NewOrder(Account, VerifyUserInput):
 class Transfer(VerifyUserInput, Auxiliary, Account):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
 
-    # TODO: clear textbox after successful transfer
-
     def __init__(self, amount_entry, account_balance_label_text):
         self.amount_entry = amount_entry
         self.account_balance_label_text = account_balance_label_text
 
-    def handle_transfer(self, transfer_type):
-        """Metoda obsługuje proces transakcji"""
+    def handle_deposit(self):
+        """Metoda obsługuje wpłatę środków na konto"""
 
-        if transfer_type == Constants.WITHDRAWAL_ALL:
-            self.withdraw_all()
-        else:
-            amount = self.get_amount()
-            is_correct, amount = self.verify_amount(amount, transfer_type)
-            if is_correct:
-
-                if transfer_type == Constants.DEPOSIT:
-                    self.deposit(amount)
-                if transfer_type == Constants.WITHDRAWAL:
-                    self.withdraw(amount)
-            else:
-                self.clear_entry_text(self.amount_entry)
-
-    def deposit(self, amount):
-        """Metoda odpowiedzialna za wpłatę środków na konto"""
-
-        if amount < 100.0:
-            messagebox.showinfo('Niewłaściwa kwota depozytu', 'Minimalny depozyt wynosi 100zł.')
-            return
-        else:
-            response = messagebox.askokcancel("Potwierdź wpłatę", 'Czy na pewno chcesz wpłacić {} zł?'.format(amount))
+        amount = self.get_amount()
+        is_correct, deposit_amount = self.verify_deposit_amount(amount)
+        if is_correct:
+            response = messagebox.askokcancel("Potwierdź wpłatę",
+                                              'Czy na pewno chcesz wpłacić {} zł?'.format(deposit_amount))
             if response == 1:  # użytkownik potwierdził chęć wpłaty na konto
-                self.increase_account_balance(amount)
+                self.increase_account_balance(deposit_amount)
 
-                messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
+                messagebox.showinfo('Sukces', 'Pomyślnie dokonano wpłaty {} zł'.format(deposit_amount))
+
                 self.update_label(self.account_balance_label_text,
                                   self.get_current_account_balance_text())
+
         self.clear_entry_text(self.amount_entry)
 
-    def withdraw(self, amount):
-        """Metoda odpowiedzialna za wypłatę środków z konta"""
+    def verify_deposit_amount(self, deposit_amount):
+        """Metoda weryfikuję poprawność kwoty wprowadzonej przez użytkownika"""
 
-        response = messagebox.askokcancel("Potwierdź wypłatę", 'Czy na pewno chcesz wypłacić {} zł?'.format(amount))
-        if response == 1:  # użytkownik potwierdził chęć wypłaty na konto
-            self.decrease_account_balance(amount)
-            messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(amount))
+        verified = self.verify_user_input(deposit_amount)
+        if verified:
+            # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
+            verified_amount = math.floor(float(deposit_amount) * 100.0) / 100.0
+
+            if verified_amount < 100.0:
+                messagebox.showinfo('Niewłaściwa kwota depozytu', 'Minimalny depozyt wynosi 100zł.')
+                return False, 0
+        else:
+            return False, 0
+
+        return True, verified_amount
+
+    def handle_withdrawal(self, withdrawal_option):
+        """Metoda obsługuje wypłatę środków z konta"""
+
+        if withdrawal_option == Constants.WITHDRAWAL:
+            # użytkownik wybrał wypłatę danej kwoty z konta
+            amount = self.get_amount()
+
+            correct_input = self.verify_user_input(amount)
+            if not correct_input:
+                self.clear_entry_text(self.amount_entry)
+                return
+            else:
+                # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
+                withdrawal_amount = math.floor(float(amount) * 100.0) / 100.0
+
+        elif withdrawal_option == Constants.WITHDRAWAL_ALL:
+            # użytkownik wybrał wypłatę wszystkich wolnych środków z konta
+            withdrawal_amount = self.get_account_balance()
+            if withdrawal_amount == 0:
+                # stan środków na koncie wynosi już 0zł
+                return
+        else:
+            return
+
+        correct, will_pay_commission = self.verify_withdrawal_amount(withdrawal_amount,
+                                                                     Constants.WITHDRAWAL_COMMISSION_THRESHOLD,
+                                                                     Constants.WITHDRAWAL_COMMISSION_AMOUNT)
+        if not correct:
+            self.clear_entry_text(self.amount_entry)
+            return
+
+        if will_pay_commission:
+            commission_amount = Constants.WITHDRAWAL_COMMISSION_AMOUNT
+        else:
+            commission_amount = 0
+
+        response = messagebox.askokcancel("Potwierdź wypłatę",
+                                          'Czy na pewno chcesz wypłacić {} zł?\n'
+                                          'Prowizja wyniesie: {} zł.' .format(withdrawal_amount, commission_amount))
+        if response == 1:  # użytkownik potwierdził chęć wypłaty z konta
+            # dokonujemy wypłaty środków wraz z ewentualnym poborem prowizji
+            if will_pay_commission:
+                withdrawal_amount -= Constants.WITHDRAWAL_COMMISSION_AMOUNT
+                self.decrease_account_balance(Constants.WITHDRAWAL_COMMISSION_AMOUNT)
+
+            self.decrease_account_balance(withdrawal_amount)
+
+            messagebox.showinfo('Sukces', 'Pomyślnie dokonano wypłaty {} zł'.format(withdrawal_amount))
             self.update_label(self.account_balance_label_text,
                               self.get_current_account_balance_text())
+
             self.clear_entry_text(self.amount_entry)
 
-    def withdraw_all(self):
-        """Metoda odpowiedzialna za wypłatę wszystkich środków z konta"""
+    def verify_withdrawal_amount(self, withdrawal_amount, withdrawal_commission_threshold,
+                                 withdrawal_commission_amount):
+        """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty oraz wyznacza wysokość prowizji"""
 
         current_account_balance = self.get_account_balance()
-        if current_account_balance == 0:
-            return
-        else:
-            response = messagebox.askokcancel("Potwierdź wypłatę wszystkich środków",
-                                              'Czy na pewno chcesz wypłacić {} zł?'.format(current_account_balance))
-            if response == 1:  # użytkownik potwierdził chęć wypłaty wszystkich środków
-                withdrawal_amount = current_account_balance
-                self.set_account_balance(0)
 
-                messagebox.showinfo('', 'Pomyślnie dokonano wypłaty {} zł'.format(withdrawal_amount))
-                self.update_label(self.account_balance_label_text,
-                                  self.get_current_account_balance_text())
+        if current_account_balance - withdrawal_amount < 0.0:
+            # użytkownik nie ma wystarczającego stanu konta, żeby wypłacić podaną ilość środków
+            self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
+            correct = False
+            will_pay_commission = False
+
+        elif current_account_balance > withdrawal_commission_threshold:
+            # użytkownik nie płaci prowizji  za wypłatę
+            correct = True
+            will_pay_commission = False
+
+        else:
+            # użytkownik powinien zapłacić prowizję
+            will_pay_commission = True
+
+            if current_account_balance == withdrawal_amount and current_account_balance > withdrawal_commission_amount:
+                # użytkownik wypłaca wszystkie środki z konta oraz posiada wystarczającą ilość środków na pokrycie prowizji
+                correct = True
+                will_pay_commission = True
+
+            elif current_account_balance < (withdrawal_amount + withdrawal_commission_amount):
+                # użytkownik nie ma wystarczającego stanu konta, żeby zapłacić prowizję
+                self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
+                correct = False
+            else:
+                # użytkownik ma wystarczający stan konta, żeby zapłacić prowizję
+                correct = True
+
+        return correct, will_pay_commission
 
     def get_amount(self):
         """Metoda odczytuje kwotę podaną przez użytkownika"""
 
         return self.amount_entry.get()
-
-    def verify_amount(self, amount, transfer_type):
-        """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty"""
-
-        verified = self.verify_user_input(amount)
-
-        if verified:
-            verified_amount = math.floor(float(amount) * 100.0) / 100.0  # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
-
-        else:
-            return False, 0
-
-        if transfer_type == Constants.WITHDRAWAL:
-            if self.get_account_balance() - verified_amount < 0:
-                self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
-                return False, 0
-
-        return True, verified_amount

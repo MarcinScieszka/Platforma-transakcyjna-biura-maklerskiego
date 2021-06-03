@@ -43,3 +43,7 @@ class Constants:
     # stałe odnoszące się do typów zleceń akcji
     BUY_ORDER = 'Zlecenie zakupu akcji'
     SELL_ORDER = 'Zlecenie sprzedaży akcji'
+
+    # stałe dotyczące prowizji podczas wypłaty środków z konta
+    WITHDRAWAL_COMMISSION_THRESHOLD = 300  # próg pobierania prowizji
+    WITHDRAWAL_COMMISSION_AMOUNT = 30  # kwota prowizji podczas wypłaty poniżej progu

@@ -80,19 +80,19 @@ class CreateGui:
         cls.deposit_amount_button = Button(cls.window,
                                            text=Constants.TEXT_DEPOSIT_BUTTON,
                                            cursor="hand2",
-                                           command=lambda: transfer.handle_transfer(Constants.DEPOSIT))
+                                           command=lambda: transfer.handle_deposit())
 
         # wciśnięcie przycisku wywołuje metodę obsługującą wypłatę pieniędzy z konta
         cls.withdraw_amount_button = Button(cls.window,
                                             text=Constants.TEXT_WITHDRAW_BUTTON,
                                             cursor="hand2",
-                                            command=lambda: transfer.handle_transfer(Constants.WITHDRAWAL))
+                                            command=lambda: transfer.handle_withdrawal(Constants.WITHDRAWAL))
 
         # wciśnięcie przycisku wywołuje metodę obsługującą wypłatę wszystkich wolnych środków z konta
         cls.withdraw_all_funds_button = Button(cls.window,
                                                text=Constants.TEXT_WITHDRAW_ALL_BUTTON,
                                                cursor="hand2",
-                                               command=lambda: transfer.handle_transfer(Constants.WITHDRAWAL_ALL))
+                                               command=lambda: transfer.handle_withdrawal(Constants.WITHDRAWAL_ALL))
 
         # ---------------------------------------------------------------------------------------------- #
 

@@ -27,6 +27,8 @@ class CreateGui:
         # ---------------------------------------------------------------------------------------------- #
 
         # --- tworzenie etykiet --- #
+
+        # etykieta tytułowa
         cls.main_title_label = Label(cls.window,
                                      text=Constants.TEXT_MAIN_TITLE,
                                      bg=Constants.COLOUR_BACKGROUND,
@@ -36,6 +38,8 @@ class CreateGui:
                                          Constants.FONT_SIZE_TITLE,
                                          Constants.FONT_WEIGHT_TITLE),
                                      pady=20)
+
+        # etykieta z opisem
         cls.main_description_label = Label(cls.window,
                                            text=Constants.TEXT_MAIN_DESCRIPTION,
                                            bg=Constants.COLOUR_BACKGROUND,
@@ -43,6 +47,8 @@ class CreateGui:
                                            font=(Constants.FONT_TYPEFACE,
                                                  Constants.FONT_SIZE_DESCRIPTION),
                                            pady=20)
+
+        # etykieta kwoty
         cls.amount_label = Label(cls.window,
                                  text=Constants.TEXT_AMOUNT,
                                  bg=Constants.COLOUR_BACKGROUND,
@@ -51,10 +57,33 @@ class CreateGui:
                                  font=(Constants.FONT_TYPEFACE,
                                        Constants.FONT_SIZE_REGULAR))
 
+        # eykieta wartości wolnych środków na koncie
         cls.account_balance_label_text = StringVar()
         cls.account_balance_label_text.set(my_account.get_current_account_balance_text())
         cls.account_balance_label = Label(cls.window,
                                           textvariable=cls.account_balance_label_text,
+                                          padx=20,
+                                          bg=Constants.COLOUR_BACKGROUND,
+                                          fg=Constants.COLOUR_TEXT,
+                                          font=(Constants.FONT_TYPEFACE,
+                                                Constants.FONT_SIZE_REGULAR))
+
+        # etykieta wartości zakupionych akcji
+        cls.value_of_shares_held_label_text = StringVar()
+        cls.value_of_shares_held_label_text.set(my_account.get_current_value_of_shares_held_text())
+        cls.value_of_shares_held_label = Label(cls.window,
+                                          textvariable=cls.value_of_shares_held_label_text,
+                                          padx=20,
+                                          bg=Constants.COLOUR_BACKGROUND,
+                                          fg=Constants.COLOUR_TEXT,
+                                          font=(Constants.FONT_TYPEFACE,
+                                                Constants.FONT_SIZE_REGULAR))
+
+        # etykieta całkowitej wartości konta
+        cls.total_account_value_label_text = StringVar()
+        cls.total_account_value_label_text.set(my_account.get_total_account_value_text())
+        cls.total_account_value_label = Label(cls.window,
+                                          textvariable=cls.total_account_value_label_text,
                                           padx=20,
                                           bg=Constants.COLOUR_BACKGROUND,
                                           fg=Constants.COLOUR_TEXT,
@@ -104,6 +133,8 @@ class CreateGui:
 
         cls.amount_label.place(x=0, y=500)
         cls.account_balance_label.place(x=0, y=540)
+        cls.value_of_shares_held_label.place(x=150, y=540)
+        cls.total_account_value_label.place(x=500, y=540)
 
         # wyświetlanie pól tekstowych
         cls.amount_entry.place(x=70, y=500)
@@ -112,7 +143,7 @@ class CreateGui:
         cls.close_button.place(x=700, y=500)
         cls.deposit_amount_button.place(x=200, y=495)
         cls.withdraw_amount_button.place(x=300, y=495)
-        cls.withdraw_all_funds_button.place(x=200, y=530)
+        cls.withdraw_all_funds_button.place(x=360, y=495)
 
         # ---------------------------------------------------------------------------------------------- #
 
@@ -130,7 +161,7 @@ class CreateGui:
         # odznaczenie elementu z listy, w momencie utraty skupienia
         cls.companies_listbox.bind('<FocusOut>', lambda e: cls.companies_listbox.selection_clear(0, END))
 
-        cls.companies_listbox.place(x=150, y=250)
+        cls.companies_listbox.place(x=150, y=200)
 
         # ---------------------------------------------------------------------------------------------- #
 
@@ -138,7 +169,7 @@ class CreateGui:
         cls.stock_amount_spinbox = Spinbox(cls.window, from_=1, to=10000)
         cls.stock_amount_spinbox.place(x=400, y=350)
 
-        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text)
+        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text, cls.value_of_shares_held_label_text)
         cls.market.insert_available_companies()
 
         # wciśnięcie przycisku wywołuje metodę obsługującą wybranie firmy spośród dostępnych

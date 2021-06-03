@@ -5,16 +5,9 @@ from tkinter import messagebox
 from src.constants import Constants
 from src.data_provider import DataProvider
 
-
-# class Platform:
-#     """Główna klasa platformy transakcyjnej"""
-#     # TODO: subclasses inside Platform ?
-#
-#     def __init__(self, window):
-#         self.window = window
-#         # Account()
-#         # Market(window)
-#         # TODO: hovering over buttons changes their colour
+# TODO: hovering over buttons changes their colour
+# TODO: add scrollbar to listbox
+# TODO: sell button
 
 
 class Auxiliary:
@@ -73,8 +66,8 @@ class VerifyUserInput(Auxiliary):
 
 class Account:
     account_balance = 10000  # aktualny stan wolnych środków na konice
-    value_of_shares_held = 0  # akutalna wartość posiadanych akcji
-    account_value = 0  # account_balance + value_of_shares_held  # całkowita wartość konta
+    value_of_shares_held = 0  # aktualna wartość posiadanych akcji
+    total_account_value = account_balance + value_of_shares_held  # całkowita wartość konta
 
     purchased_stock_list = []  # lista posiadanych firm przez użytkownika
 
@@ -101,7 +94,7 @@ class Account:
         return Constants.TEXT_VALUE_OF_SHARES_HELD + str(self.get_value_of_shares_held()) + Constants.TEXT_CURRENCY
 
     def get_value_of_shares_held(self):
-        return self.account_balance
+        return self.value_of_shares_held
 
     def set_value_of_shares_held(self, amount):
         Account.value_of_shares_held = amount
@@ -112,24 +105,25 @@ class Account:
     def decrease_value_of_shares_held(self, amount):
         self.set_value_of_shares_held(self.get_value_of_shares_held() - amount)
 
+    # ---------------------------------------------------------------------------- #
+
+    def get_total_account_value_text(self):
+        return Constants.TEXT_TOTAL_ACCOUNT_VALUE + str(self.get_total_account_value()) + Constants.TEXT_CURRENCY
+
+    def get_total_account_value(self):
+        return self.total_account_value
+
 
 class Market:
     """Klasa zarządza listą firm, których akcje można zakupić"""
 
-    def __init__(self, stock_amount_spinbox, companies_listbox, account_balance_label_text):
+    def __init__(self, stock_amount_spinbox, companies_listbox, account_balance_label_text, value_of_shares_held_label_text):
         self.available_companies = DataProvider.get_companies()
         self.stock_amount_spinbox = stock_amount_spinbox
         self.companies_listbox = companies_listbox
 
         self.account_balance_label_text = account_balance_label_text
-
-        # TODO: add scrollbar to listbox
-        # TODO: ability to deselect company from a list or show popup-like thing
-        # TODO: handle error - clicking button when no item in listbox is selected
-        # TODO: sell button
-        # TODO: remove ability to buy when not selected
-
-        # self.insert_available_companies()
+        self.value_of_shares_held_label_text = value_of_shares_held_label_text
 
     def insert_available_companies(self):
         offset = 0
@@ -156,7 +150,7 @@ class Market:
 
         stock_amount_str = self.stock_amount_spinbox.get()
 
-        NewOrder(company, stock_amount_str, order_type, self.account_balance_label_text)
+        NewOrder(company, stock_amount_str, order_type, self.account_balance_label_text, self.value_of_shares_held_label_text)
 
         # po dokonaniu transakcji, odznaczamy element z listy
         self.companies_listbox.selection_clear(0, 'end')
@@ -165,7 +159,7 @@ class Market:
 class NewOrder(Account, VerifyUserInput):
     """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
 
-    def __init__(self, company, stock_amount, order_type, account_balance_label_text):
+    def __init__(self, company, stock_amount, order_type, account_balance_label_text, value_of_shares_held_label_text):
         self.company = company
         self.stock_amount = stock_amount
         self.order_type = order_type
@@ -173,6 +167,7 @@ class NewOrder(Account, VerifyUserInput):
         self.company_name = self.company.get_name()
 
         self.account_balance_label_text = account_balance_label_text
+        self.value_of_shares_held_label_text = value_of_shares_held_label_text
 
         verified = self.verify_user_input(str(self.stock_amount))
 
@@ -201,11 +196,12 @@ class NewOrder(Account, VerifyUserInput):
             if _response == 1:
                 self.decrease_account_balance(transaction_value)
                 self.increase_value_of_shares_held(transaction_value)
-                messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'.format(self.stock_amount,
-                                                                                                   self.company_name))
-                # TODO:add label
-                # self.update_label(self.value_of_shares_held_label_text,
-                #                   self.get_current_value_of_shares_held_text())
+
+                messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
+                                    .format(self.stock_amount, self.company_name))
+
+                self.update_label(self.value_of_shares_held_label_text,
+                                  self.get_current_value_of_shares_held_text())
                 self.update_label(self.account_balance_label_text,
                                   self.get_current_account_balance_text())
 

@@ -15,7 +15,8 @@ class DataProvider:
         companies = []
 
         for company in companies_list:
-            separate = company.split(Constants.DATA_SEPARATOR)  # oddzielamy parametry separowane przecinkiem
+            # oddzielamy parametry separowane przecinkiem
+            separate = company.split(Constants.DATA_SEPARATOR)
 
             company_name = separate[0]
             company_symbol = separate[1]

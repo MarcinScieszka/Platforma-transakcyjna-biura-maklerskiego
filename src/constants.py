@@ -5,14 +5,13 @@ class Constants:
     TEXT_MAIN_TITLE = 'Platforma transakcyjna Future Station'
     TEXT_MAIN_DESCRIPTION = 'Biuro maklerskie William-Scott Trade'
     TEXT_CLOSE_BUTTON = 'Wyjdź'
-    # TEXT_CONFIRM_BUTTON = 'Zatwierdź'
     TEXT_WITHDRAW_BUTTON = 'Wypłać'
     TEXT_WITHDRAW_ALL_BUTTON = 'Wypłać wszystkie środki'
     TEXT_DEPOSIT_BUTTON = 'Wpłać depozyt'
     TEXT_AMOUNT = 'Kwota'
     TEXT_CURRENT_BALANCE = 'Saldo: '
-    TEXT_VALUE_OF_SHARES_HELD = 'Wartość posiadanych akcji'
-    # TEXT_ACCOUNT_VALUE = 'Wartość konta: '
+    TEXT_VALUE_OF_SHARES_HELD = 'Wartość posiadanych akcji: '
+    TEXT_TOTAL_ACCOUNT_VALUE = 'Wartość konta: '
     TEXT_CURRENCY = ' zł'  # waluta, w której obsługiwane są transakcje
 
     # stałe odnoszące się do zastosowanej palety kolorów

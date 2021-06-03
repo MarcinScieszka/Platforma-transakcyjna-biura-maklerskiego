@@ -152,22 +152,23 @@ class CreateGui:
                                         bg=Constants.COLOUR_BACKGROUND,
                                         selectbackground='purple',
                                         fg='white',
-                                        width=40,
+                                        width=18,
                                         font=Constants.FONT_TYPEFACE,
                                         cursor='hand2',
                                         bd=0,
+                                        justify=RIGHT,
                                         highlightthickness=0)
 
         # odznaczenie elementu z listy, w momencie utraty skupienia
         cls.companies_listbox.bind('<FocusOut>', lambda e: cls.companies_listbox.selection_clear(0, END))
 
-        cls.companies_listbox.place(x=150, y=200)
+        cls.companies_listbox.place(x=50, y=200)
 
         # ---------------------------------------------------------------------------------------------- #
 
         # pole tekstowe umożliwiające wybór ilości akcji danej firmy
-        cls.stock_amount_spinbox = Spinbox(cls.window, from_=1, to=10000)
-        cls.stock_amount_spinbox.place(x=400, y=350)
+        cls.stock_amount_spinbox = Spinbox(cls.window, from_=1, to=10000, width=10)
+        cls.stock_amount_spinbox.place(x=250, y=350)
 
         cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text, cls.value_of_shares_held_label_text)
         cls.market.insert_available_companies()
@@ -182,6 +183,6 @@ class CreateGui:
                                        text="Zakup akcje",
                                        command=lambda: cls.market.select_company(Constants.BUY_ORDER))
 
-        cls.buy_shares_button.place(x=20, y=200)
+        cls.buy_shares_button.place(x=250, y=300)
 
         # ---------------------------------------------------------------------------------------------- #

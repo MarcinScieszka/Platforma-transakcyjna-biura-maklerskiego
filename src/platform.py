@@ -126,12 +126,18 @@ class Market:
         self.value_of_shares_held_label_text = value_of_shares_held_label_text
 
     def insert_available_companies(self):
-        offset = 0
         for company in self.available_companies:
-            combined_name = company.get_symbol() + str(company.get_price())
-            self.companies_listbox.insert(END, combined_name)
+            company_price = company.get_price()
+            company_symbol = company.get_symbol()
 
-            offset += 30
+            if company_price < 10:
+                self.companies_listbox.insert(END, "   {:>}    {:>8}   ".format(company_symbol, company_price))
+            elif company_price < 100:
+                self.companies_listbox.insert(END, "   {:>}   {:>8}   ".format(company_symbol, company_price))
+            elif company_price < 1000:
+                self.companies_listbox.insert(END, "   {:>}  {:>8}   ".format(company_symbol, company_price))
+            else:
+                self.companies_listbox.insert(END, "   {:>} {:>8}   ".format(company_symbol, company_price))
 
     def select_company(self, order_type):
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""

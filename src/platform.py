@@ -1,8 +1,9 @@
+import functools
+import math
 from tkinter import *
 from tkinter import messagebox
 from src.constants import Constants
 from src.data_provider import DataProvider
-import functools
 
 
 # class Platform:
@@ -84,12 +85,10 @@ class Account:
         Account.account_balance = amount
 
     def increase_account_balance(self, amount):
-        Account.account_balance += amount
-        self.set_account_balance(round(self.get_account_balance(), 2))
+        self.set_account_balance(self.get_account_balance() + amount)
 
     def decrease_account_balance(self, amount):
-        Account.account_balance -= amount
-        self.set_account_balance(round(self.get_account_balance(), 2))
+        self.set_account_balance(self.get_account_balance() - amount)
 
 
 class Market:
@@ -175,9 +174,9 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
             self.withdraw_all()
         else:
             amount = self.get_amount()
-            is_correct = self.verify_amount(amount, transfer_type)
+            is_correct, amount = self.verify_amount(amount, transfer_type)
             if is_correct:
-                amount = round(float(amount), 2)  # kwota jest poprawna, zaokrąglamy ją do dwóch miejsc po przecinku
+
                 if transfer_type == Constants.DEPOSIT:
                     self.deposit(amount)
                 if transfer_type == Constants.WITHDRAWAL:
@@ -188,14 +187,18 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
     def deposit(self, amount):
         """Metoda odpowiedzialna za wpłatę środków na konto"""
 
-        response = messagebox.askokcancel("Potwierdź wpłatę", 'Czy na pewno chcesz wpłacić {} zł?'.format(amount))
-        if response == 1:  # użytkownik potwierdził chęć wpłaty na konto
-            self.increase_account_balance(amount)
+        if amount < 100.0:
+            messagebox.showinfo('Niewłaściwa kwota depozytu', 'Minimalny depozyt wynosi 100zł.')
+            return
+        else:
+            response = messagebox.askokcancel("Potwierdź wpłatę", 'Czy na pewno chcesz wpłacić {} zł?'.format(amount))
+            if response == 1:  # użytkownik potwierdził chęć wpłaty na konto
+                self.increase_account_balance(amount)
 
-            messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
-            self.update_label(self.account_balance_label_text,
-                              self.get_current_account_balance_text())
-            self.clear_entry_text(self.amount_entry)
+                messagebox.showinfo('', 'Pomyślnie dokonano wpłaty {} zł'.format(amount))
+                self.update_label(self.account_balance_label_text,
+                                  self.get_current_account_balance_text())
+        self.clear_entry_text(self.amount_entry)
 
     def withdraw(self, amount):
         """Metoda odpowiedzialna za wypłatę środków z konta"""
@@ -236,13 +239,14 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
         verified = self.verify_user_input(amount)
 
         if verified:
-            verified_amount = float(amount)
+            verified_amount = math.floor(float(amount) * 100.0) / 100.0  # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
+
         else:
-            return False
+            return False, 0
 
         if transfer_type == Constants.WITHDRAWAL:
             if self.get_account_balance() - verified_amount < 0:
                 self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
-                return False
+                return False, 0
 
-        return True
+        return True, verified_amount

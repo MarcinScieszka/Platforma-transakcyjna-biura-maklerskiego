@@ -1,6 +1,6 @@
-from src.constants import Constants
 from tkinter import *
-from platform import Auxiliary, Transfer, Account, Market
+from src.constants import Constants
+from src.platform import Account, Transfer, Auxiliary, Market
 
 
 class CreateGui:

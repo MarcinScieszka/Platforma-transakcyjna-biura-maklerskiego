@@ -16,6 +16,12 @@ class DataProvider:
 
         for company in companies_list:
             separate = company.split(Constants.DATA_SEPARATOR)  # oddzielamy parametry separowane przecinkiem
-            companies.append(Company(separate[0], separate[1], separate[2]))
+
+            company_name = separate[0]
+            company_symbol = separate[1]
+            company_share_price_str = separate[2]
+            company_share_price = float(company_share_price_str)
+
+            companies.append(Company(company_name, company_symbol, company_share_price))
 
         return companies

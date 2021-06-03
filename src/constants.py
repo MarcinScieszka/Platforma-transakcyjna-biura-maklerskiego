@@ -11,6 +11,7 @@ class Constants:
     TEXT_DEPOSIT_BUTTON = 'Wpłać depozyt'
     TEXT_AMOUNT = 'Kwota'
     TEXT_CURRENT_BALANCE = 'Saldo: '
+    TEXT_VALUE_OF_SHARES_HELD = 'Wartość posiadanych akcji'
     # TEXT_ACCOUNT_VALUE = 'Wartość konta: '
     TEXT_CURRENCY = ' zł'  # waluta, w której obsługiwane są transakcje
 
@@ -29,8 +30,12 @@ class Constants:
     MESSAGE_ERROR = 'Błąd'
     MESSAGE_ERROR_VALUE = 'Podano nieprawidłową wartość'
     MESSAGE_ERROR_NEGATIVE_BALANCE = 'Niewystarczająca ilość środków do wypłaty'
+    MESSAGE_ERROR_NOT_ENOUGH_FUNDS = 'Niewystarczająca ilość środków do zakupu akcji'
+
     MESSAGE_CONFIRM_EXIT = 'Potwierdź wyjście'
     MESSAGE_CONFIRM_EXIT_TEXT = 'Czy na pewno chcesz opuścić platformę?'
+
+    MESSAGE_CONFIRM_BUY_SHARES = 'Potwierdź zakup akcji'
 
     # stałe odnoszące się do statusu transakcji gotówkowych wybranego przez użytkownika
     DEPOSIT = 0  # chęć wpłaty

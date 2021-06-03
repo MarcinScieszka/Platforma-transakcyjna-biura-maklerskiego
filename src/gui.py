@@ -138,7 +138,7 @@ class CreateGui:
         cls.stock_amount_spinbox = Spinbox(cls.window, from_=1, to=10000)
         cls.stock_amount_spinbox.place(x=400, y=350)
 
-        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox)
+        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text)
         cls.market.insert_available_companies()
 
         # wciśnięcie przycisku wywołuje metodę obsługującą wybranie firmy spośród dostępnych

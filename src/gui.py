@@ -101,26 +101,34 @@ class CreateGui:
         # wciśnięcie przycisku powoduje wywołanie metody obsługującej opuszczenie platformy
         cls.close_button = Button(cls.window,
                                   text=Constants.TEXT_CLOSE_BUTTON,
-                                  cursor="hand2",
+                                  background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                  bd=Constants.BUTTON_BORDER_SIZE,
+                                  cursor=Constants.ACTIVE_CURSOR,
                                   command=lambda: Auxiliary.exit_platform(cls.window),
                                   padx=10)
 
         # wciśnięcie przycisku wywołuje metodę obsługującą wpłatę pieniędzy na konto
         cls.deposit_amount_button = Button(cls.window,
                                            text=Constants.TEXT_DEPOSIT_BUTTON,
-                                           cursor="hand2",
+                                           background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                           bd=Constants.BUTTON_BORDER_SIZE,
+                                           cursor=Constants.ACTIVE_CURSOR,
                                            command=lambda: transfer.handle_deposit())
 
         # wciśnięcie przycisku wywołuje metodę obsługującą wypłatę pieniędzy z konta
         cls.withdraw_amount_button = Button(cls.window,
                                             text=Constants.TEXT_WITHDRAW_BUTTON,
-                                            cursor="hand2",
+                                            background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                            bd=Constants.BUTTON_BORDER_SIZE,
+                                            cursor=Constants.ACTIVE_CURSOR,
                                             command=lambda: transfer.handle_withdrawal(Constants.WITHDRAWAL))
 
         # wciśnięcie przycisku wywołuje metodę obsługującą wypłatę wszystkich wolnych środków z konta
         cls.withdraw_all_funds_button = Button(cls.window,
                                                text=Constants.TEXT_WITHDRAW_ALL_BUTTON,
-                                               cursor="hand2",
+                                               background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                               bd=Constants.BUTTON_BORDER_SIZE,
+                                               cursor=Constants.ACTIVE_CURSOR,
                                                command=lambda: transfer.handle_withdrawal(Constants.WITHDRAWAL_ALL))
 
         # ---------------------------------------------------------------------------------------------- #
@@ -173,16 +181,14 @@ class CreateGui:
         cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text, cls.value_of_shares_held_label_text)
         cls.market.insert_available_companies()
 
-        # wciśnięcie przycisku wywołuje metodę obsługującą wybranie firmy spośród dostępnych
-        cls.buy_shares_button = Button(cls.window,
-                                       background='#f1f1f1',
-                                       fg='black',
-                                       bd=0,
-                                       # relief=RAISED, # relief can be flat, groove, raised, ridge, solid, or sunken
-                                       cursor="hand2",
-                                       text="Zakup akcje",
-                                       command=lambda: cls.market.select_company(Constants.BUY_ORDER))
+        # wciśnięcie przycisku wywołuje funkcję obsługującą zakup akcji wybranej firmy
+        cls.purchase_shares_button = Button(cls.window,
+                                            text=Constants.TEXT_PURCHASE_SHARES_BUTTON,
+                                            background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                            bd=Constants.BUTTON_BORDER_SIZE,
+                                            cursor=Constants.ACTIVE_CURSOR,
+                                            command=lambda: cls.market.select_company(Constants.BUY_ORDER))
 
-        cls.buy_shares_button.place(x=250, y=300)
+        cls.purchase_shares_button.place(x=250, y=300)
 
         # ---------------------------------------------------------------------------------------------- #

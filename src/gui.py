@@ -17,13 +17,12 @@ class CreateGui:
         my_account = Account()
 
         cls.window = window
-        cls.window.geometry("800x600")  # ustawienie wymiarów okna na 800 na 600 pikseli
+        cls.window.geometry(Constants.WINDOW_SIZE)  # ustawienie wymiarów okna
         cls.window.resizable(False, False)  # zablokowanie możliwości zmiany rozmiaru okna
         cls.window['bg'] = Constants.COLOUR_BACKGROUND  # wybór koloru tła
-        cls.window.title("Platforma transakcyjna")  # nadanie tytułu dla głównego okna
+        cls.window.title(Constants.TEXT_WINDOW_TITLE)  # nadanie tytułu dla głównego okna
         # TODO: implement window.iconbitmap with .ico
 
-        # TODO: separate widgets by functionality?
         # ---------------------------------------------------------------------------------------------- #
 
         # --- tworzenie etykiet --- #
@@ -72,23 +71,23 @@ class CreateGui:
         cls.value_of_shares_held_label_text = StringVar()
         cls.value_of_shares_held_label_text.set(my_account.get_current_value_of_shares_held_text())
         cls.value_of_shares_held_label = Label(cls.window,
-                                          textvariable=cls.value_of_shares_held_label_text,
-                                          padx=20,
-                                          bg=Constants.COLOUR_BACKGROUND,
-                                          fg=Constants.COLOUR_TEXT,
-                                          font=(Constants.FONT_TYPEFACE,
-                                                Constants.FONT_SIZE_REGULAR))
+                                               textvariable=cls.value_of_shares_held_label_text,
+                                               padx=20,
+                                               bg=Constants.COLOUR_BACKGROUND,
+                                               fg=Constants.COLOUR_TEXT,
+                                               font=(Constants.FONT_TYPEFACE,
+                                                     Constants.FONT_SIZE_REGULAR))
 
         # etykieta całkowitej wartości konta
         cls.total_account_value_label_text = StringVar()
         cls.total_account_value_label_text.set(my_account.get_total_account_value_text())
         cls.total_account_value_label = Label(cls.window,
-                                          textvariable=cls.total_account_value_label_text,
-                                          padx=20,
-                                          bg=Constants.COLOUR_BACKGROUND,
-                                          fg=Constants.COLOUR_TEXT,
-                                          font=(Constants.FONT_TYPEFACE,
-                                                Constants.FONT_SIZE_REGULAR))
+                                              textvariable=cls.total_account_value_label_text,
+                                              padx=20,
+                                              bg=Constants.COLOUR_BACKGROUND,
+                                              fg=Constants.COLOUR_TEXT,
+                                              font=(Constants.FONT_TYPEFACE,
+                                                    Constants.FONT_SIZE_REGULAR))
 
         # tworzenie pól tekstowych
         cls.amount_text = StringVar()
@@ -155,17 +154,17 @@ class CreateGui:
 
         # ---------------------------------------------------------------------------------------------- #
 
-        # stworzenie listboxa, który przechowuje listę dostępnych firm
+        # stworzenie listy dostępnych firm
         cls.companies_listbox = Listbox(cls.window,
                                         bg=Constants.COLOUR_BACKGROUND,
-                                        selectbackground='purple',
-                                        fg='white',
-                                        width=18,
+                                        selectbackground=Constants.LISTBOX_SELECTION_BACKGROUND,
+                                        fg=Constants.LISTBOX_TEXT_COLOUR,
+                                        width=Constants.LISTBOX_WIDTH,
                                         font=Constants.FONT_TYPEFACE,
-                                        cursor='hand2',
-                                        bd=0,
+                                        cursor=Constants.ACTIVE_CURSOR,
+                                        bd=Constants.LISTBOX_BORDER_SIZE,
                                         justify=RIGHT,
-                                        highlightthickness=0)
+                                        highlightthickness=Constants.LISTBOX_HIGHLIGHT_THICKNESS)
 
         # odznaczenie elementu z listy, w momencie utraty skupienia
         cls.companies_listbox.bind('<FocusOut>', lambda e: cls.companies_listbox.selection_clear(0, END))
@@ -174,11 +173,31 @@ class CreateGui:
 
         # ---------------------------------------------------------------------------------------------- #
 
+        # stworzenie listy zakupionych firm
+        cls.current_stock_positions = Listbox(cls.window,
+                                              bg=Constants.COLOUR_BACKGROUND,
+                                              selectbackground=Constants.LISTBOX_SELECTION_BACKGROUND,
+                                              fg=Constants.LISTBOX_TEXT_COLOUR,
+                                              width=Constants.LISTBOX_WIDTH,
+                                              font=Constants.FONT_TYPEFACE,
+                                              cursor=Constants.ACTIVE_CURSOR,
+                                              bd=Constants.LISTBOX_BORDER_SIZE,
+                                              justify=RIGHT,
+                                              highlightthickness=Constants.LISTBOX_HIGHLIGHT_THICKNESS)
+
+        # odznaczenie elementu z listy, w momencie utraty skupienia
+        cls.current_stock_positions.bind('<FocusOut>', lambda e: cls.current_stock_positions.selection_clear(0, END))
+
+        cls.current_stock_positions.place(x=250, y=200)
+
+        # ---------------------------------------------------------------------------------------------- #
+
         # pole tekstowe umożliwiające wybór ilości akcji danej firmy
         cls.stock_amount_spinbox = Spinbox(cls.window, from_=1, to=10000, width=10)
         cls.stock_amount_spinbox.place(x=250, y=350)
 
-        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text, cls.value_of_shares_held_label_text)
+        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text,
+                            cls.value_of_shares_held_label_text)
         cls.market.insert_available_companies()
 
         # wciśnięcie przycisku wywołuje funkcję obsługującą zakup akcji wybranej firmy

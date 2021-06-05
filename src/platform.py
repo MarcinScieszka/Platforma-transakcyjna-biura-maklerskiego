@@ -5,6 +5,7 @@ from tkinter import messagebox
 from src.constants import Constants
 from src.data_provider import DataProvider
 
+
 # TODO: show list of bought companies
 # TODO: implement selling shares
 # TODO: add sell button
@@ -117,18 +118,20 @@ class Account:
 class Market:
     """Klasa zarządza listą firm, których akcje można zakupić"""
 
-    def __init__(self, stock_amount_spinbox, companies_listbox, account_balance_label_text, value_of_shares_held_label_text):
-        self.available_companies = DataProvider.get_companies()
-        self.stock_amount_spinbox = stock_amount_spinbox
+    def __init__(self, companies_listbox):
         self.companies_listbox = companies_listbox
-        self.account_balance_label_text = account_balance_label_text
-        self.value_of_shares_held_label_text = value_of_shares_held_label_text
+
+        # odczytanie listy firm, których akcje można zakupić
+        self.available_companies = DataProvider.get_companies()
 
     def insert_available_companies(self):
+        """Metoda wypełnia listę firm dostępnych na rynku."""
+
         for company in self.available_companies:
             share_price = company.get_price()
             company_symbol = company.get_symbol()
 
+            # odpowiednie formatowanie zależnie od ceny pojedynczej akcji
             if share_price < 10:
                 self.companies_listbox.insert(END, "   {:>}    {:>8}   ".format(company_symbol, share_price))
             elif share_price < 100:
@@ -137,6 +140,18 @@ class Market:
                 self.companies_listbox.insert(END, "   {:>}  {:>8}   ".format(company_symbol, share_price))
             else:
                 self.companies_listbox.insert(END, "   {:>} {:>8}   ".format(company_symbol, share_price))
+
+
+class NewOrder(Market, Account, VerifyUserInput):
+    """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
+
+    def __init__(self, stock_amount_spinbox, account_balance_label_text, value_of_shares_held_label_text,
+                 companies_listbox):
+
+        super().__init__(companies_listbox)
+        self.stock_amount_spinbox = stock_amount_spinbox
+        self.account_balance_label_text = account_balance_label_text
+        self.value_of_shares_held_label_text = value_of_shares_held_label_text
 
     def select_company(self, order_type):
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
@@ -148,47 +163,37 @@ class Market:
             # żaden element z listy nie został zaznaczony
             return
 
-        # zamiana typu tuple na int
-        index = functools.reduce(lambda a: a, selection_tuple)
+        # konwersja typu tuple na int
+        company_index = functools.reduce(lambda a: a, selection_tuple)
 
-        company = self.available_companies[index]
+        company = self.available_companies[company_index]
 
-        stock_amount_str = self.stock_amount_spinbox.get()
+        # odczytanie ilość akcji wybranych przez użytkownika do zlecenia
+        stock_amount = self.stock_amount_spinbox.get()
 
-        NewOrder(company, stock_amount_str, order_type, self.account_balance_label_text, self.value_of_shares_held_label_text)
+        verified = self.verify_user_input(stock_amount)
+
+        if not verified:
+            return
+        else:
+            stock_amount = int(stock_amount)
+            if order_type == Constants.BUY_ORDER:
+                self.handle_stock_buy_order(company, stock_amount)
+            if order_type == Constants.SELL_ORDER:
+                self.handle_stock_sell_order(company, stock_amount)
 
         # po dokonaniu transakcji, odznaczamy element z listy
         self.companies_listbox.selection_clear(0, 'end')
 
-
-class NewOrder(Account, VerifyUserInput):
-    """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
-
-    def __init__(self, company, stock_amount, order_type, account_balance_label_text, value_of_shares_held_label_text):
-        self.company = company
-        self.stock_amount = stock_amount
-        self.order_type = order_type
-        self.share_price = self.company.get_price()
-        self.company_name = self.company.get_name()
-        self.company_symbol = self.company.get_symbol()
-
-        self.account_balance_label_text = account_balance_label_text
-        self.value_of_shares_held_label_text = value_of_shares_held_label_text
-
-        verified = self.verify_user_input(str(self.stock_amount))
-
-        if verified:
-            self.stock_amount = int(stock_amount)
-            if order_type == Constants.BUY_ORDER:
-                self.handle_stock_buy_order()
-            if order_type == Constants.SELL_ORDER:
-                self.handle_stock_sell_order()
-
-    def handle_stock_buy_order(self):
+    def handle_stock_buy_order(self, company, stock_amount):
         """Obsługa zlecenia zakupu akcji"""
 
+        share_price = company.get_price()
+        company_name = company.get_name()
+        company_symbol = company.get_symbol()
+
         # obliczenie wartości potencjalnej transakcji
-        transaction_value = self.stock_amount * self.share_price
+        transaction_value = stock_amount * share_price
 
         if transaction_value > self.get_account_balance():
             # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
@@ -197,22 +202,22 @@ class NewOrder(Account, VerifyUserInput):
             # prośba o potwierdzenie chęci zakupu + podanie informacji
             _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
                                                'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
-                                               .format(self.stock_amount, self.company_name, transaction_value))
+                                               .format(stock_amount, company_name, transaction_value))
 
             if _response == 1:
                 self.decrease_account_balance(transaction_value)
                 self.increase_value_of_shares_held(transaction_value)
-                self.purchased_stock_list.append(self.company)
+                self.purchased_stock_list.append(company)
 
                 messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
-                                    .format(self.stock_amount, self.company_name))
+                                    .format(stock_amount, company_name))
 
                 self.update_label(self.value_of_shares_held_label_text,
                                   self.get_current_value_of_shares_held_text())
                 self.update_label(self.account_balance_label_text,
                                   self.get_current_account_balance_text())
 
-    def handle_stock_sell_order(self):
+    def handle_stock_sell_order(self, company, stock_amount):
         """Obsługa zlecenia sprzedaży akcji"""
         pass
 
@@ -309,7 +314,7 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
             self.decrease_account_balance(withdrawal_amount)
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano wypłaty {} zł.\n'
-                                          'Prowizja wyniosła {} zł.' .format(withdrawal_amount, paid_commission_amount))
+                                          'Prowizja wyniosła {} zł.'.format(withdrawal_amount, paid_commission_amount))
             self.update_label(self.account_balance_label_text,
                               self.get_current_account_balance_text())
 
@@ -323,7 +328,7 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
 
         if withdrawal_amount < (withdrawal_commission_amount + 0.5):
             messagebox.showinfo('Informacja', 'Minimalna wypłata wynosi {} zł.'
-                                .format(Constants.WITHDRAWAL_COMMISSION_AMOUNT+0.5))
+                                .format(Constants.WITHDRAWAL_COMMISSION_AMOUNT + 0.5))
             return False, False
 
         if current_account_balance - withdrawal_amount < 0.0:

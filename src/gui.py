@@ -1,6 +1,6 @@
 from tkinter import *
 from src.constants import Constants
-from src.platform import Account, Transfer, Auxiliary, Market
+from src.platform import Account, Transfer, Auxiliary, Market, NewOrder
 
 
 class CreateGui:
@@ -174,7 +174,7 @@ class CreateGui:
         # ---------------------------------------------------------------------------------------------- #
 
         # stworzenie listy zakupionych firm
-        cls.current_stock_positions = Listbox(cls.window,
+        cls.current_stock_positions_listbox = Listbox(cls.window,
                                               bg=Constants.COLOUR_BACKGROUND,
                                               selectbackground=Constants.LISTBOX_SELECTION_BACKGROUND,
                                               fg=Constants.LISTBOX_TEXT_COLOUR,
@@ -186,9 +186,9 @@ class CreateGui:
                                               highlightthickness=Constants.LISTBOX_HIGHLIGHT_THICKNESS)
 
         # odznaczenie elementu z listy, w momencie utraty skupienia
-        cls.current_stock_positions.bind('<FocusOut>', lambda e: cls.current_stock_positions.selection_clear(0, END))
+        cls.current_stock_positions_listbox.bind('<FocusOut>', lambda e: cls.current_stock_positions_listbox.selection_clear(0, END))
 
-        cls.current_stock_positions.place(x=250, y=200)
+        cls.current_stock_positions_listbox.place(x=500, y=200)
 
         # ---------------------------------------------------------------------------------------------- #
 
@@ -196,9 +196,10 @@ class CreateGui:
         cls.stock_amount_spinbox = Spinbox(cls.window, from_=1, to=10000, width=10)
         cls.stock_amount_spinbox.place(x=250, y=350)
 
-        cls.market = Market(cls.stock_amount_spinbox, cls.companies_listbox, cls.account_balance_label_text,
-                            cls.value_of_shares_held_label_text)
+        cls.market = Market(cls.companies_listbox)
         cls.market.insert_available_companies()
+
+        cls.new_order = NewOrder(cls.stock_amount_spinbox, cls.account_balance_label_text, cls.value_of_shares_held_label_text, cls.companies_listbox)
 
         # wciśnięcie przycisku wywołuje funkcję obsługującą zakup akcji wybranej firmy
         cls.purchase_shares_button = Button(cls.window,
@@ -206,7 +207,7 @@ class CreateGui:
                                             background=Constants.BUTTON_BACKGROUND_COLOUR,
                                             bd=Constants.BUTTON_BORDER_SIZE,
                                             cursor=Constants.ACTIVE_CURSOR,
-                                            command=lambda: cls.market.select_company(Constants.BUY_ORDER))
+                                            command=lambda: cls.new_order.select_company(Constants.BUY_ORDER))
 
         cls.purchase_shares_button.place(x=250, y=300)
 

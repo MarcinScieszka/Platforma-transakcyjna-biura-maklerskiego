@@ -8,7 +8,7 @@ class Main:
     @classmethod
     def main(cls):
         window = tk.Tk()
-        CreateGui.create_gui(window)
+        CreateGui(window)
         window.mainloop()
 
 

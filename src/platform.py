@@ -1,10 +1,7 @@
-import functools
 import math
-from tkinter import *
 from tkinter import messagebox
 from src.constants import Constants
 from src.data_provider import DataProvider
-
 
 # TODO: show list of bought companies
 # TODO: implement selling shares
@@ -19,18 +16,6 @@ class Auxiliary:
         """Wyświetlenie okna z komunikatem błędu."""
 
         messagebox.showerror(Constants.MESSAGE_ERROR, error_message)
-
-    @classmethod
-    def update_label(cls, label_text_var, label_text):
-        """Aktualizacja nazwy danej etykiety"""
-
-        label_text_var.set(label_text)
-
-    @classmethod
-    def clear_entry_text(cls, entry):
-        """Metoda czyści zawartość pola tekstowego"""
-
-        entry.delete(0, END)
 
     @classmethod
     def exit_platform(cls, window):
@@ -91,7 +76,7 @@ class Account:
 
     # ---------------------------------------------------------------------------- #
 
-    def get_current_value_of_shares_held_text(self):
+    def get_value_of_shares_held_text(self):
         return Constants.TEXT_VALUE_OF_SHARES_HELD + str(self.get_value_of_shares_held()) + Constants.TEXT_CURRENCY
 
     def get_value_of_shares_held(self):
@@ -115,62 +100,19 @@ class Account:
         return self.total_account_value
 
 
-class Market:
-    """Klasa zarządza listą firm, których akcje można zakupić"""
+class NewOrder(Account, VerifyUserInput):
+    """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
 
-    def __init__(self, companies_listbox):
-        self.companies_listbox = companies_listbox
-
+    def __init__(self):
         # odczytanie listy firm, których akcje można zakupić
         self.available_companies = DataProvider.get_companies()
 
-    def insert_available_companies(self):
-        """Metoda wypełnia listę firm dostępnych na rynku."""
-
-        for company in self.available_companies:
-            share_price = company.get_price()
-            company_symbol = company.get_symbol()
-
-            # odpowiednie formatowanie zależnie od ceny pojedynczej akcji
-            if share_price < 10:
-                self.companies_listbox.insert(END, "   {:>}    {:>8}   ".format(company_symbol, share_price))
-            elif share_price < 100:
-                self.companies_listbox.insert(END, "   {:>}   {:>8}   ".format(company_symbol, share_price))
-            elif share_price < 1000:
-                self.companies_listbox.insert(END, "   {:>}  {:>8}   ".format(company_symbol, share_price))
-            else:
-                self.companies_listbox.insert(END, "   {:>} {:>8}   ".format(company_symbol, share_price))
-
-
-class NewOrder(Market, Account, VerifyUserInput):
-    """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
-
-    def __init__(self, stock_amount_spinbox, account_balance_label_text, value_of_shares_held_label_text,
-                 companies_listbox):
-
-        super().__init__(companies_listbox)
-        self.stock_amount_spinbox = stock_amount_spinbox
-        self.account_balance_label_text = account_balance_label_text
-        self.value_of_shares_held_label_text = value_of_shares_held_label_text
-
-    def select_company(self, order_type):
+    def select_company(self, order_type, company_index, stock_amount):
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
-
-        # odczytujemy indeks wybranego elementu z listy firm - wynik jest w postaci jednoelementowej krotki
-        selection_tuple = self.companies_listbox.curselection()
-
-        if len(selection_tuple) == 0:
-            # żaden element z listy nie został zaznaczony
-            return
-
-        # konwersja typu tuple na int
-        company_index = functools.reduce(lambda a: a, selection_tuple)
 
         company = self.available_companies[company_index]
 
-        # odczytanie ilość akcji wybranych przez użytkownika do zlecenia
-        stock_amount = self.stock_amount_spinbox.get()
-
+        # weryfikacja danych wprowadzonych przez użytkownika
         verified = self.verify_user_input(stock_amount)
 
         if not verified:
@@ -181,9 +123,6 @@ class NewOrder(Market, Account, VerifyUserInput):
                 self.handle_stock_buy_order(company, stock_amount)
             if order_type == Constants.SELL_ORDER:
                 self.handle_stock_sell_order(company, stock_amount)
-
-        # po dokonaniu transakcji, odznaczamy element z listy
-        self.companies_listbox.selection_clear(0, 'end')
 
     def handle_stock_buy_order(self, company, stock_amount):
         """Obsługa zlecenia zakupu akcji"""
@@ -212,11 +151,6 @@ class NewOrder(Market, Account, VerifyUserInput):
                 messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
                                     .format(stock_amount, company_name))
 
-                self.update_label(self.value_of_shares_held_label_text,
-                                  self.get_current_value_of_shares_held_text())
-                self.update_label(self.account_balance_label_text,
-                                  self.get_current_account_balance_text())
-
     def handle_stock_sell_order(self, company, stock_amount):
         """Obsługa zlecenia sprzedaży akcji"""
         pass
@@ -225,14 +159,9 @@ class NewOrder(Market, Account, VerifyUserInput):
 class Transfer(VerifyUserInput, Auxiliary, Account):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
 
-    def __init__(self, amount_entry, account_balance_label_text):
-        self.amount_entry = amount_entry
-        self.account_balance_label_text = account_balance_label_text
-
-    def handle_deposit(self):
+    def handle_deposit(self, amount):
         """Metoda obsługuje wpłatę środków na konto"""
 
-        amount = self.get_amount()
         is_correct, deposit_amount = self.verify_deposit_amount(amount)
         if is_correct:
             response = messagebox.askokcancel("Potwierdź wpłatę",
@@ -242,11 +171,6 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
                 self.increase_account_balance(deposit_amount)
 
                 messagebox.showinfo('Sukces', 'Pomyślnie dokonano wpłaty {} zł'.format(deposit_amount))
-
-                self.update_label(self.account_balance_label_text,
-                                  self.get_current_account_balance_text())
-
-        self.clear_entry_text(self.amount_entry)
 
     def verify_deposit_amount(self, deposit_amount):
         """Metoda weryfikuję poprawność kwoty wprowadzonej przez użytkownika"""
@@ -264,16 +188,14 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
 
         return True, verified_amount
 
-    def handle_withdrawal(self, withdrawal_option):
+    def handle_withdrawal(self, amount, withdrawal_option):
         """Metoda obsługuje wypłatę środków z konta"""
 
         if withdrawal_option == Constants.WITHDRAWAL:
             # użytkownik wybrał wypłatę danej kwoty z konta
-            amount = self.get_amount()
 
             correct_input = self.verify_user_input(amount)
             if not correct_input:
-                self.clear_entry_text(self.amount_entry)
                 return
             else:
                 # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
@@ -292,7 +214,6 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
                                                                      Constants.WITHDRAWAL_COMMISSION_THRESHOLD,
                                                                      Constants.WITHDRAWAL_COMMISSION_AMOUNT)
         if not correct:
-            self.clear_entry_text(self.amount_entry)
             return
 
         if will_pay_commission:
@@ -315,10 +236,6 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano wypłaty {} zł.\n'
                                           'Prowizja wyniosła {} zł.'.format(withdrawal_amount, paid_commission_amount))
-            self.update_label(self.account_balance_label_text,
-                              self.get_current_account_balance_text())
-
-            self.clear_entry_text(self.amount_entry)
 
     def verify_withdrawal_amount(self, withdrawal_amount, withdrawal_commission_threshold,
                                  withdrawal_commission_amount):
@@ -350,8 +267,3 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
             will_pay_commission = True
 
         return correct, will_pay_commission
-
-    def get_amount(self):
-        """Metoda odczytuje kwotę podaną przez użytkownika"""
-
-        return self.amount_entry.get()

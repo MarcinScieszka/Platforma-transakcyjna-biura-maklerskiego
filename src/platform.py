@@ -5,9 +5,9 @@ from tkinter import messagebox
 from src.constants import Constants
 from src.data_provider import DataProvider
 
-# TODO: hovering over buttons changes their colour
-# TODO: add scrollbar to listbox
-# TODO: sell button
+# TODO: show list of bought companies
+# TODO: implement selling shares
+# TODO: add sell button
 
 
 class Auxiliary:
@@ -121,23 +121,22 @@ class Market:
         self.available_companies = DataProvider.get_companies()
         self.stock_amount_spinbox = stock_amount_spinbox
         self.companies_listbox = companies_listbox
-
         self.account_balance_label_text = account_balance_label_text
         self.value_of_shares_held_label_text = value_of_shares_held_label_text
 
     def insert_available_companies(self):
         for company in self.available_companies:
-            company_price = company.get_price()
+            share_price = company.get_price()
             company_symbol = company.get_symbol()
 
-            if company_price < 10:
-                self.companies_listbox.insert(END, "   {:>}    {:>8}   ".format(company_symbol, company_price))
-            elif company_price < 100:
-                self.companies_listbox.insert(END, "   {:>}   {:>8}   ".format(company_symbol, company_price))
-            elif company_price < 1000:
-                self.companies_listbox.insert(END, "   {:>}  {:>8}   ".format(company_symbol, company_price))
+            if share_price < 10:
+                self.companies_listbox.insert(END, "   {:>}    {:>8}   ".format(company_symbol, share_price))
+            elif share_price < 100:
+                self.companies_listbox.insert(END, "   {:>}   {:>8}   ".format(company_symbol, share_price))
+            elif share_price < 1000:
+                self.companies_listbox.insert(END, "   {:>}  {:>8}   ".format(company_symbol, share_price))
             else:
-                self.companies_listbox.insert(END, "   {:>} {:>8}   ".format(company_symbol, company_price))
+                self.companies_listbox.insert(END, "   {:>} {:>8}   ".format(company_symbol, share_price))
 
     def select_company(self, order_type):
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
@@ -171,6 +170,7 @@ class NewOrder(Account, VerifyUserInput):
         self.order_type = order_type
         self.share_price = self.company.get_price()
         self.company_name = self.company.get_name()
+        self.company_symbol = self.company.get_symbol()
 
         self.account_balance_label_text = account_balance_label_text
         self.value_of_shares_held_label_text = value_of_shares_held_label_text
@@ -202,6 +202,7 @@ class NewOrder(Account, VerifyUserInput):
             if _response == 1:
                 self.decrease_account_balance(transaction_value)
                 self.increase_value_of_shares_held(transaction_value)
+                self.purchased_stock_list.append(self.company)
 
                 messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
                                     .format(self.stock_amount, self.company_name))
@@ -299,13 +300,16 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
                                           'Prowizja wyniesie: {} zł.'.format(withdrawal_amount, commission_amount))
         if response == 1:  # użytkownik potwierdził chęć wypłaty z konta
             # dokonujemy wypłaty środków wraz z ewentualnym poborem prowizji
+            paid_commission_amount = 0
             if will_pay_commission:
+                paid_commission_amount = Constants.WITHDRAWAL_COMMISSION_AMOUNT
                 withdrawal_amount -= Constants.WITHDRAWAL_COMMISSION_AMOUNT
                 self.decrease_account_balance(Constants.WITHDRAWAL_COMMISSION_AMOUNT)
 
             self.decrease_account_balance(withdrawal_amount)
 
-            messagebox.showinfo('Sukces', 'Pomyślnie dokonano wypłaty {} zł'.format(withdrawal_amount))
+            messagebox.showinfo('Sukces', 'Pomyślnie dokonano wypłaty {} zł.\n'
+                                          'Prowizja wyniosła {} zł.' .format(withdrawal_amount, paid_commission_amount))
             self.update_label(self.account_balance_label_text,
                               self.get_current_account_balance_text())
 
@@ -317,33 +321,28 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
 
         current_account_balance = self.get_account_balance()
 
+        if withdrawal_amount < (withdrawal_commission_amount + 0.5):
+            messagebox.showinfo('Informacja', 'Minimalna wypłata wynosi {} zł.'
+                                .format(Constants.WITHDRAWAL_COMMISSION_AMOUNT+0.5))
+            return False, False
+
         if current_account_balance - withdrawal_amount < 0.0:
             # użytkownik nie ma wystarczającego stanu konta, żeby wypłacić podaną ilość środków
             self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
             correct = False
             will_pay_commission = False
+            return correct, will_pay_commission
 
-        elif withdrawal_amount > withdrawal_commission_threshold:
+        correct = True
+
+        if withdrawal_amount > withdrawal_commission_threshold:
             # użytkownik nie płaci prowizji za wypłatę
-            correct = True
+
             will_pay_commission = False
 
         else:
             # użytkownik powinien zapłacić prowizję
             will_pay_commission = True
-
-            if current_account_balance == withdrawal_amount and current_account_balance > withdrawal_commission_amount:
-                # użytkownik wypłaca wszystkie środki z konta oraz posiada wystarczającą ilość środków na pokrycie prowizji
-                correct = True
-                will_pay_commission = True
-
-            elif current_account_balance < (withdrawal_amount + withdrawal_commission_amount):
-                # użytkownik nie ma wystarczającego stanu konta, żeby zapłacić prowizję
-                self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
-                correct = False
-            else:
-                # użytkownik ma wystarczający stan konta, żeby zapłacić prowizję
-                correct = True
 
         return correct, will_pay_commission
 

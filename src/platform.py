@@ -36,6 +36,14 @@ class DepositTooSmallException(Error):
                              + Constants.MESSAGE_MINIMAL_DEPOSIT_AMOUNT)
 
 
+class NegativeBalanceException(Error):
+    """Wyjątek zgłoszony, gdy użytkownik chce wypłacić z konta kwotę większą niż stan wolnych środków"""
+
+    def __init__(self):
+        Auxiliary.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
+
+
+
 class VerifyUserInput(Auxiliary):
     """Klasa weryfikuję poprawność danych wprowadzonych przez użytkownika"""
 
@@ -244,7 +252,7 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
             try:
                 raise DepositTooSmallException(deposit_amount)
             except DepositTooSmallException as err:
-                print(err.amount)
+                pass
             return False
         else:
             return True
@@ -255,7 +263,7 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
         if withdrawal_option == Constants.WITHDRAWAL:
             # użytkownik wybrał wypłatę danej kwoty z konta
 
-            correct_input = self.verify_user_input(amount)
+            correct_input = self.verify_user_input(str(amount))
             if not correct_input:
                 return
             else:
@@ -311,7 +319,11 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
 
         if current_account_balance - withdrawal_amount < 0.0:
             # użytkownik nie ma wystarczającego stanu konta, żeby wypłacić podaną ilość środków
-            self.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
+            try:
+                raise NegativeBalanceException
+            except NegativeBalanceException:
+                pass
+
             correct = False
             will_pay_commission = False
             return correct, will_pay_commission

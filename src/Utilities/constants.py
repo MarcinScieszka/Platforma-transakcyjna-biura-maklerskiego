@@ -38,10 +38,14 @@ class Constants:
 
     # stałe odnoszące się do treści komunikatów
     MESSAGE_ERROR = 'Błąd'
+
     MESSAGE_INSUFFICIENT_DEPOSIT_AMOUNT = 'Niewystarczająca kwota depozytu: '
     MESSAGE_MINIMAL_DEPOSIT_AMOUNT = 'Minimalna wysokość depozytu wynosi: ' + str(MINIMAL_DEPOSIT_AMOUNT) + TEXT_CURRENCY
-    MESSAGE_ERROR_VALUE = 'Podano nieprawidłową wartość'
+
     MESSAGE_ERROR_NEGATIVE_BALANCE = 'Niewystarczający stan środków do wypłaty'
+
+    MESSAGE_ERROR_VALUE = 'Podano nieprawidłową wartość'
+
     MESSAGE_ERROR_NOT_ENOUGH_FUNDS = 'Niewystarczający stan środków do zakupu akcji'
     MESSAGE_ERROR_NOT_ENOUGH_SHARES = 'Niewystarczająca liczba posiadanych akcji do sprzedaży'
 

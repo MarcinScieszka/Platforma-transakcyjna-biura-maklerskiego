@@ -5,6 +5,8 @@ class Constants:
     WINDOW_SIZE = "800x600"
     TEXT_WINDOW_TITLE = 'Platforma transakcyjna'
 
+    MINIMAL_DEPOSIT_AMOUNT = 100
+
     # stałe odnoszące się do nazw pól tekstowych
     TEXT_MAIN_TITLE = 'Platforma transakcyjna Future Station'
     TEXT_MAIN_DESCRIPTION = 'Biuro maklerskie William-Scott Trade'
@@ -36,6 +38,8 @@ class Constants:
 
     # stałe odnoszące się do treści komunikatów
     MESSAGE_ERROR = 'Błąd'
+    MESSAGE_INSUFFICIENT_DEPOSIT_AMOUNT = 'Niewystarczająca kwota depozytu: '
+    MESSAGE_MINIMAL_DEPOSIT_AMOUNT = 'Minimalna wysokość depozytu wynosi: ' + str(MINIMAL_DEPOSIT_AMOUNT) + TEXT_CURRENCY
     MESSAGE_ERROR_VALUE = 'Podano nieprawidłową wartość'
     MESSAGE_ERROR_NEGATIVE_BALANCE = 'Niewystarczający stan środków do wypłaty'
     MESSAGE_ERROR_NOT_ENOUGH_FUNDS = 'Niewystarczający stan środków do zakupu akcji'

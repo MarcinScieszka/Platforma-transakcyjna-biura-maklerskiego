@@ -22,6 +22,20 @@ class Auxiliary:
             window.destroy()
 
 
+class Error(Exception):
+    """Klasa bazowa dla wyjątków w tym module"""
+    pass
+
+
+class DepositTooSmallException(Error):
+    """Wyjątek zgłoszony, gdy użytkownik chce zdeponować kwotę poniżej progu minimalnego depozytu"""
+
+    def __init__(self, amount):
+        self.amount = amount
+        Auxiliary.show_error(Constants.MESSAGE_INSUFFICIENT_DEPOSIT_AMOUNT + str(amount) + Constants.TEXT_CURRENCY + '\n'
+                             + Constants.MESSAGE_MINIMAL_DEPOSIT_AMOUNT)
+
+
 class VerifyUserInput(Auxiliary):
     """Klasa weryfikuję poprawność danych wprowadzonych przez użytkownika"""
 
@@ -226,8 +240,11 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
     def verify_deposit_amount(deposit_amount):
         """Metoda weryfikuję poprawność kwoty wprowadzonej przez użytkownika"""
 
-        if deposit_amount < 100.0:
-            messagebox.showinfo('Niewłaściwa kwota depozytu', 'Minimalny depozyt wynosi 100zł.')
+        if deposit_amount < Constants.MINIMAL_DEPOSIT_AMOUNT:
+            try:
+                raise DepositTooSmallException(deposit_amount)
+            except DepositTooSmallException as err:
+                print(err.amount)
             return False
         else:
             return True

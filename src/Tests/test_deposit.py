@@ -1,7 +1,7 @@
 import unittest
 
 from src.Utilities.constants import Constants
-from src.platform import Account, Transfer, DepositTooSmallException
+from src.platform import Account, Transfer, MinimalDepositException
 
 
 class TestDeposit(unittest.TestCase):
@@ -31,11 +31,9 @@ class TestDeposit(unittest.TestCase):
         transfer = Transfer()
         deposit_amount = Constants.MINIMAL_DEPOSIT_AMOUNT - 1
 
-        # when
-        transfer.handle_deposit(deposit_amount)
-
         # then
-        self.assertRaises(DepositTooSmallException)
+        with self.assertRaises(MinimalDepositException):
+            transfer.verify_deposit_amount(deposit_amount)
 
 
 if __name__ == '__main__':

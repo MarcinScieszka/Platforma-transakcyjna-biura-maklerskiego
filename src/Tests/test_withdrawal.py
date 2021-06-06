@@ -17,11 +17,9 @@ class TestWithdrawal(unittest.TestCase):
         account.set_account_balance(100)
         withdrawal_amount = 500
 
-        # when
-        transfer.handle_withdrawal(withdrawal_amount, Constants.WITHDRAWAL)
-
         # then
-        self.assertRaises(NegativeBalanceException)
+        with self.assertRaises(NegativeBalanceException):
+            transfer.verify_withdrawal_amount(withdrawal_amount)
 
     def test_withdrawing_amount_within_commission_threshold_should_charge_commission(self):
         """Test sprawdza próbę wypłaty z konta kwoty zawierającej się w zakresie pobierania prowizji.

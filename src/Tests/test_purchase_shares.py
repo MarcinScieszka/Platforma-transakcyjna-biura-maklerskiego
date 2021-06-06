@@ -13,16 +13,20 @@ class TestPurchaseShares(unittest.TestCase):
 
         # given
         DataProvider.instantiate_companies()
-        company = DataProvider.get_company(1)
         account = Account()
         account.set_account_balance(100)
         new_order = NewOrder()
 
-        # when
-        new_order.handle_stock_buy_order(company, 500, 5)
-
         # then
-        self.assertRaises(NotEnoughFundsException)
+        with self.assertRaises(Exception):
+            new_order.validate_transaction_value(2000)
+
+    def test_purchasing_shares_should_charge_commission_add_shares_reduce_balance(self):
+        """Test sprawdza zakup akcji danej firmy.
+        Oczekiwane:
+        zwiększenie ilości posiadanych akcji danej firmy
+        prawidłowe obliczenie oraz pobranie prowizji
+        zmniejszenie wartości wolnych środków o wartość akcji powiększoną o kwotę prowizji"""
 
 
 if __name__ == '__main__':

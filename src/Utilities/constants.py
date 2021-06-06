@@ -5,7 +5,13 @@ class Constants:
     WINDOW_SIZE = "800x600"
     TEXT_WINDOW_TITLE = 'Platforma transakcyjna'
 
+    # stałe dotyczące warunków dokonywania wpłat/wypłat
+    WITHDRAWAL_COMMISSION_THRESHOLD = 300  # próg pobierania prowizji
+    WITHDRAWAL_COMMISSION_AMOUNT = 30  # kwota prowizji podczas wypłaty poniżej progu
     MINIMAL_DEPOSIT_AMOUNT = 100
+    MINIMAL_WITHDRAWAL_AMOUNT = WITHDRAWAL_COMMISSION_AMOUNT + 0.5
+
+    PURCHASING_SHARES_COMMISSION = 0.002 # prowizja pobierana podczas zakupu akcji
 
     # stałe odnoszące się do nazw pól tekstowych
     TEXT_MAIN_TITLE = 'Platforma transakcyjna Future Station'
@@ -41,6 +47,7 @@ class Constants:
 
     MESSAGE_INSUFFICIENT_DEPOSIT_AMOUNT = 'Niewystarczająca kwota depozytu: '
     MESSAGE_MINIMAL_DEPOSIT_AMOUNT = 'Minimalna wysokość depozytu wynosi: ' + str(MINIMAL_DEPOSIT_AMOUNT) + TEXT_CURRENCY
+    MESSAGE_ERROR_MINIMAL_WITHDRAWAL_AMOUNT = 'Minimalna wypłata wynosi: ' + str(MINIMAL_WITHDRAWAL_AMOUNT)
 
     MESSAGE_ERROR_NEGATIVE_BALANCE = 'Niewystarczający stan środków do wypłaty'
 
@@ -65,10 +72,6 @@ class Constants:
     # stałe odnoszące się do typów zleceń akcji
     BUY_ORDER = 'Zlecenie zakupu akcji'
     SELL_ORDER = 'Zlecenie sprzedaży akcji'
-
-    # stałe dotyczące prowizji podczas wypłaty środków z konta
-    WITHDRAWAL_COMMISSION_THRESHOLD = 300  # próg pobierania prowizji
-    WITHDRAWAL_COMMISSION_AMOUNT = 30  # kwota prowizji podczas wypłaty poniżej progu
 
     ACTIVE_CURSOR = 'hand2'  # wygląd kursora po najechaniu na przyciski/listboxa
 

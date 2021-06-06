@@ -27,7 +27,7 @@ class Error(Exception):
     pass
 
 
-class DepositTooSmallException(Error):
+class MinimalDepositException(Error):
     """Wyjątek zgłoszony, gdy użytkownik chce zdeponować kwotę poniżej progu minimalnego depozytu"""
 
     def __init__(self, amount):
@@ -35,6 +35,14 @@ class DepositTooSmallException(Error):
         Auxiliary.show_error(
             Constants.MESSAGE_INSUFFICIENT_DEPOSIT_AMOUNT + str(amount) + Constants.TEXT_CURRENCY + '\n'
             + Constants.MESSAGE_MINIMAL_DEPOSIT_AMOUNT)
+
+
+class MinimalWithdrawalException(Error):
+    """Wyjątek zgłoszony, gdy użytkownik chce wypłacić kwotę poniżej progu minimalnej wypłaty"""
+
+    def __init__(self, amount):
+        self.amount = amount
+        Auxiliary.show_error(Constants.MESSAGE_ERROR_MINIMAL_WITHDRAWAL_AMOUNT + Constants.TEXT_CURRENCY)
 
 
 class NegativeBalanceException(Error):
@@ -47,8 +55,12 @@ class NegativeBalanceException(Error):
 class NotEnoughFundsException(Error):
     """Wyjątek zgłoszony, gdy użytkownik chce zakupić akcje za kwotę większą niż stan wolnych środków"""
 
-    def __init__(self):
-        Auxiliary.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_FUNDS)
+    def __init__(self, total_transaction_value):
+        self.total_transaction_value = total_transaction_value
+
+        Auxiliary.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_FUNDS + '\n' +
+                             "Kwota potrzebna do realizacji zlecenia : " + str(self.total_transaction_value) +
+                             Constants.TEXT_CURRENCY)
 
 
 class VerifyUserInput(Auxiliary):
@@ -179,34 +191,43 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         company_name = company.get_name()
         company_symbol = company.get_symbol()
 
-        if transaction_value > self.get_account_balance():
-            # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
-            try:
-                raise NotEnoughFundsException
-            except NotEnoughFundsException:
-                successful_transaction = False
+        try:
+            commission = self.validate_transaction_value(transaction_value)
+        except NotEnoughFundsException:
+            successful_transaction = False
+            return successful_transaction
 
+        # prośba o potwierdzenie chęci zakupu + podanie informacji o transakcji
+        _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
+                                           'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
+                                           .format(stock_amount, company_name, transaction_value + commission))
+
+        if _response == 1:
+            self.decrease_account_balance(transaction_value + commission)
+            self.increase_platform_balance(commission)
+            self.increase_value_of_shares_held(transaction_value)
+
+            # aktualizacja liczby posiadanych akcji danej firmy
+            self.purchased_companies[company_symbol] += stock_amount
+
+            messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
+                                .format(stock_amount, company_name))
+
+            successful_transaction = True
         else:
-            # prośba o potwierdzenie chęci zakupu + podanie informacji o transakcji
-            _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
-                                               'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
-                                               .format(stock_amount, company_name, transaction_value))
-
-            if _response == 1:
-                self.decrease_account_balance(transaction_value)
-                self.increase_value_of_shares_held(transaction_value)
-
-                # aktualizacja liczby posiadanych akcji danej firmy
-                self.purchased_companies[company_symbol] += stock_amount
-
-                messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
-                                    .format(stock_amount, company_name))
-
-                successful_transaction = True
-            else:
-                successful_transaction = False
+            successful_transaction = False
 
         return successful_transaction
+
+    def validate_transaction_value(self, transaction_value):
+        commission = Constants.PURCHASING_SHARES_COMMISSION * transaction_value
+        if commission < 5.0:
+            commission = 5.0
+        total_transaction_value = transaction_value + commission
+        if total_transaction_value > self.get_account_balance():
+            # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
+            raise NotEnoughFundsException(total_transaction_value)
+        return commission
 
     def handle_stock_sell_order(self, company, transaction_value, stock_amount):
         """Obsługa zlecenia sprzedaży akcji"""
@@ -259,7 +280,11 @@ class Transfer(PlatformAccount, Account, Auxiliary):
             # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
             deposit_amount = math.floor(float(amount) * 100.0) / 100.0
 
-        correct_value = self.verify_deposit_amount(deposit_amount)
+        try:
+            correct_value = self.verify_deposit_amount(deposit_amount)
+        except MinimalDepositException:
+            correct_value = False
+
         if not correct_value:
             # podana kwota nie spełnia warunków depozytu
             return
@@ -277,11 +302,7 @@ class Transfer(PlatformAccount, Account, Auxiliary):
         """Metoda weryfikuję poprawność kwoty wprowadzonej przez użytkownika"""
 
         if deposit_amount < Constants.MINIMAL_DEPOSIT_AMOUNT:
-            try:
-                raise DepositTooSmallException(deposit_amount)
-            except DepositTooSmallException:
-                pass
-            return False
+            raise MinimalDepositException(deposit_amount)
         else:
             return True
 
@@ -307,10 +328,9 @@ class Transfer(PlatformAccount, Account, Auxiliary):
         else:
             return
 
-        correct, will_pay_commission = self.verify_withdrawal_amount(self.withdrawal_amount,
-                                                                     Constants.WITHDRAWAL_COMMISSION_THRESHOLD,
-                                                                     Constants.WITHDRAWAL_COMMISSION_AMOUNT)
-        if not correct:
+        try:
+            will_pay_commission = self.verify_withdrawal_amount(self.withdrawal_amount)
+        except (MinimalWithdrawalException, NegativeBalanceException):
             return
 
         if will_pay_commission:
@@ -326,8 +346,9 @@ class Transfer(PlatformAccount, Account, Auxiliary):
 
         response = messagebox.askokcancel("Potwierdź wypłatę",
                                           'Czy na pewno chcesz wypłacić {} zł?\n'
-                                          'Prowizja wyniesie: {} zł.'.format(self.withdrawal_amount + self.paid_commission_amount,
-                                                                             self.paid_commission_amount))
+                                          'Prowizja wyniesie: {} zł.'.format(
+                                              self.withdrawal_amount + self.paid_commission_amount,
+                                              self.paid_commission_amount))
         if response == 1:  # użytkownik potwierdził chęć wypłaty z konta
 
             # przekazanie prowizji na konto platformy
@@ -341,37 +362,25 @@ class Transfer(PlatformAccount, Account, Auxiliary):
                                           'Prowizja wyniosła {} zł.'.format(self.withdrawal_amount,
                                                                             self.paid_commission_amount))
 
-    def verify_withdrawal_amount(self, withdrawal_amount, withdrawal_commission_threshold,
-                                 withdrawal_commission_amount):
-        """Metoda weryfikuję poprawność danych wprowadzonych przez użytkownika podczas podawania kwoty oraz wyznacza wysokość prowizji"""
+    def verify_withdrawal_amount(self, withdrawal_amount):
+        """Weryfikacja poprawności danych wprowadzonych przez użytkownika podczas podawania kwoty
+        oraz sprawdzenie czy użytkownik zapłaci prowizję"""
 
         current_account_balance = self.get_account_balance()
 
-        if withdrawal_amount < (withdrawal_commission_amount + 0.5):
-            messagebox.showinfo('Informacja', 'Minimalna wypłata wynosi {} zł.'
-                                .format(Constants.WITHDRAWAL_COMMISSION_AMOUNT + 0.5))
-            return False, False
+        if withdrawal_amount < Constants.MINIMAL_WITHDRAWAL_AMOUNT:
+            raise MinimalWithdrawalException(withdrawal_amount)
 
-        if current_account_balance - withdrawal_amount < 0.0:
+        elif current_account_balance - withdrawal_amount < 0.0:
             # użytkownik nie ma wystarczającego stanu konta, żeby wypłacić podaną ilość środków
-            try:
-                raise NegativeBalanceException
-            except NegativeBalanceException:
-                pass
+            raise NegativeBalanceException
 
-            correct = False
-            will_pay_commission = False
-            return correct, will_pay_commission
-
-        correct = True
-
-        if withdrawal_amount > withdrawal_commission_threshold:
+        elif withdrawal_amount > Constants.WITHDRAWAL_COMMISSION_THRESHOLD:
             # użytkownik nie płaci prowizji za wypłatę
-
             will_pay_commission = False
 
         else:
             # użytkownik powinien zapłacić prowizję
             will_pay_commission = True
 
-        return correct, will_pay_commission
+        return will_pay_commission

@@ -27,27 +27,31 @@ class VerifyUserInput(Auxiliary):
 
     @classmethod
     def verify_user_input(cls, user_input):
-        if len(user_input) == 0:  # użytkownik nie podał żadnej wartości
-            return False  # ignorujemy żądanie
+        if len(user_input) == 0:
+            # użytkownik nie podał żadnej wartości - żądanie zostaje zignorowane
+            return False
 
         try:
             amount = float(user_input)
         except ValueError:
-            cls.show_error(Constants.MESSAGE_ERROR_VALUE)  # podana przez użytkownika wartość nie jest poprawną liczbą
+            # podana przez użytkownika wartość nie jest poprawną liczbą
+            cls.show_error(Constants.MESSAGE_ERROR_VALUE)
             return False
 
         if amount < 0:
-            cls.show_error(Constants.MESSAGE_ERROR_VALUE)  # użytkownik podał ujemną kwotę
+            # użytkownik podał ujemną kwotę
+            cls.show_error(Constants.MESSAGE_ERROR_VALUE)
             return False
 
-        if amount == 0:  # ignorujemy żądanie wpłaty 0zł
+        if amount == 0:
+            # żądanie wpłaty 0zł zostaje zignorowane
             return False
 
         return True
 
 
 class Account:
-    account_balance = 10000  # aktualny stan wolnych środków na konice
+    account_balance = 0  # aktualny stan wolnych środków na konice
     value_of_shares_held = 0  # aktualna wartość posiadanych akcji
 
     DataProvider.instantiate_companies()
@@ -197,31 +201,36 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
     def handle_deposit(self, amount):
         """Metoda obsługuje wpłatę środków na konto"""
 
-        is_correct, deposit_amount = self.verify_deposit_amount(amount)
-        if is_correct:
-            response = messagebox.askokcancel("Potwierdź wpłatę",
-                                              'Czy na pewno chcesz wpłacić {} zł?'.format(deposit_amount))
-            if response == 1:
-                # użytkownik potwierdził chęć wpłaty na konto
-                self.increase_account_balance(deposit_amount)
+        verified_input = self.verify_user_input(str(amount))
+        if not verified_input:
+            # użytkownik nie podał poprawnej kwoty
+            return
+        else:
+            # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
+            deposit_amount = math.floor(float(amount) * 100.0) / 100.0
 
-                messagebox.showinfo('Sukces', 'Pomyślnie dokonano wpłaty {} zł'.format(deposit_amount))
+        correct_value = self.verify_deposit_amount(deposit_amount)
+        if not correct_value:
+            # podana kwota nie spełnia warunków depozytu
+            return
 
-    def verify_deposit_amount(self, deposit_amount):
+        response = messagebox.askokcancel("Potwierdź wpłatę",
+                                          'Czy na pewno chcesz wpłacić {} zł?'.format(deposit_amount))
+        if response == 1:
+            # użytkownik potwierdził chęć wpłaty na konto
+            self.increase_account_balance(deposit_amount)
+
+            messagebox.showinfo('Sukces', 'Pomyślnie dokonano wpłaty {} zł'.format(deposit_amount))
+
+    @staticmethod
+    def verify_deposit_amount(deposit_amount):
         """Metoda weryfikuję poprawność kwoty wprowadzonej przez użytkownika"""
 
-        verified = self.verify_user_input(deposit_amount)
-        if verified:
-            # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
-            verified_amount = math.floor(float(deposit_amount) * 100.0) / 100.0
-
-            if verified_amount < 100.0:
-                messagebox.showinfo('Niewłaściwa kwota depozytu', 'Minimalny depozyt wynosi 100zł.')
-                return False, 0
+        if deposit_amount < 100.0:
+            messagebox.showinfo('Niewłaściwa kwota depozytu', 'Minimalny depozyt wynosi 100zł.')
+            return False
         else:
-            return False, 0
-
-        return True, verified_amount
+            return True
 
     def handle_withdrawal(self, amount, withdrawal_option):
         """Metoda obsługuje wypłatę środków z konta"""

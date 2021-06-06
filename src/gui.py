@@ -2,7 +2,7 @@ import functools
 from tkinter import *
 from src.Utilities.constants import Constants
 from src.Repository.data_provider import DataProvider
-from src.platform import Account, Transfer, Auxiliary, NewOrder
+from src.platform import Account, Transfer, Auxiliary, NewOrder, VerifyUserInput
 
 
 class CreateGui:

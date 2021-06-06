@@ -9,13 +9,13 @@ class CreateGui:
     """Klasa odpowiedzialna za obsługę graficznego interfejsu programu"""
 
     def __init__(self, window):
+        DataProvider.receive_companies()
         self.account = Account()
         self.transfer = Transfer()
         self.new_order = NewOrder()
         self.window = window
         self.set_up_gui()
         self.create_widgets()
-
 
     def set_up_gui(self):
         """Ustawienie parametrów początkowych okna platformy"""
@@ -94,8 +94,6 @@ class CreateGui:
         # tworzenie pól tekstowych
         self.amount_text = StringVar()
         self.amount_entry = Entry(self.window, textvariable=Constants.TEXT_AMOUNT)
-
-
 
         # ---tworzenie przycisków--- #
 
@@ -208,38 +206,14 @@ class CreateGui:
                                              background=Constants.BUTTON_BACKGROUND_COLOUR,
                                              bd=Constants.BUTTON_BORDER_SIZE,
                                              cursor=Constants.ACTIVE_CURSOR,
-                                             command=lambda: self.command_select_company(Constants.BUY_ORDER))
+                                             command=lambda: self.command_handle_new_order(Constants.BUY_ORDER))
 
         self.purchase_shares_button.place(x=250, y=300)
 
         # ---------------------------------------------------------------------------------------------- #
 
-    def command_handle_transfer(self, transfer_type):
-        """Metoda zarządza transferem pieniężnym, po wciśnięciu przycisku w zależności od rodzaju transferu podanego przez użytkownika"""
-
-        # odczytanie kwoty podanej przez użytkownika
-        amount = self.amount_entry.get()
-
-        if transfer_type == Constants.DEPOSIT:
-            self.transfer.handle_deposit(amount)
-        elif transfer_type == Constants.WITHDRAWAL:
-            self.transfer.handle_withdrawal(amount, Constants.WITHDRAWAL)
-        elif transfer_type == Constants.WITHDRAWAL_ALL:
-            self.transfer.handle_withdrawal(amount, Constants.WITHDRAWAL_ALL)
-        else:
-            return
-
-        current_account_balance_text = self.account.get_current_account_balance_text()
-
-        # aktualizacja etykiety informującej o wysokości wolnych środków na koncie
-        self.update_label(self.account_balance_label_text, current_account_balance_text)
-
-        # usunięcie zawartości pola tekstowego
-        self.amount_entry.delete(0, END)
-
-    def command_select_company(self, order_type):
-
-        # self.current_stock_positions_listbox
+    def command_handle_new_order(self, order_type):
+        """Metoda obsługuje nowe zlecenie złożone przez użytkownika"""
 
         # odczytujemy indeks wybranego elementu z listy firm - wynik jest w postaci jednoelementowej krotki
         selection_tuple = self.companies_listbox.curselection()
@@ -254,22 +228,56 @@ class CreateGui:
         # odczytanie ilość akcji wybranych przez użytkownika do zlecenia
         stock_amount = self.stock_amount_spinbox.get()
 
-        self.new_order.select_company(order_type, company_index, stock_amount)
+        # wybór firmy, weryfikacja oraz ewentualna realizacja zlecenia
+        successful_transaction = self.new_order.select_company(order_type, company_index, stock_amount)
 
+        if not successful_transaction:
+            return
+
+        # if order_type == Constants.BUY_ORDER:
+        #     # dokonano zakupu akcji
+        self.current_stock_positions_listbox.insert(END, "test")
+
+        # aktualizacja etykiety informującej o wysokości wolnych środków na konice
         value_of_shares_held_text = self.account.get_value_of_shares_held_text()
+        self.update_label(self.value_of_shares_held_label_text, value_of_shares_held_text)
+
+        # aktualizacja etykiety informującej o wartości posiadanych akcji
         account_balance_text = self.account.get_current_account_balance_text()
+        self.update_label(self.account_balance_label_text, account_balance_text)
 
         # po dokonaniu transakcji, odznaczamy element z listy
         self.companies_listbox.selection_clear(0, 'end')
 
-        self.update_label(self.value_of_shares_held_label_text, value_of_shares_held_text)
-        self.update_label(self.account_balance_label_text, account_balance_text)
+    def command_handle_transfer(self, transfer_type):
+        """Metoda zarządza transferem pieniężnym, po wciśnięciu przycisku w zależności od rodzaju transferu podanego przez użytkownika"""
+
+        # odczytanie kwoty podanej przez użytkownika
+        amount = self.amount_entry.get()
+
+        if transfer_type == Constants.DEPOSIT:
+            self.transfer.handle_deposit(amount)
+        elif transfer_type == Constants.WITHDRAWAL:
+            self.transfer.handle_withdrawal(amount, Constants.WITHDRAWAL)
+        else:
+            self.transfer.handle_withdrawal(amount, Constants.WITHDRAWAL_ALL)
+
+        # aktualizacja etykiety informującej o wysokości wolnych środków na koncie
+        current_account_balance_text = self.account.get_current_account_balance_text()
+        self.update_label(self.account_balance_label_text, current_account_balance_text)
+
+        # aktualizacja etykiety informującej o całkowitej wartości konta
+        total_account_value_text = self.account.get_total_account_value_text()
+        self.update_label(self.total_account_value_label_text, total_account_value_text)
+
+        # usunięcie zawartości pola tekstowego
+        self.amount_entry.delete(0, END)
 
     def insert_available_companies(self):
         """Metoda wypełnia listę firm dostępnych na rynku."""
 
         # odczytanie listy firm, których akcje można zakupić
-        available_companies = DataProvider.get_companies()
+        available_companies = DataProvider.get_all_companies()
 
         for company in available_companies:
             share_price = company.get_price()

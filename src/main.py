@@ -4,9 +4,10 @@ from src.gui import CreateGui
 
 class Main:
     """Główna klasa programu.
-    Wywołanie CreateGui odpowiedzialnej za interfejs graficzny"""
-    @classmethod
-    def main(cls):
+    Wywołanie klasy CreateGui odpowiedzialnej za interfejs graficzny"""
+
+    @staticmethod
+    def main():
         window = tk.Tk()
         CreateGui(window)
         window.mainloop()

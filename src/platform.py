@@ -11,14 +11,14 @@ from src.data_provider import DataProvider
 class Auxiliary:
     """Klasa zawiera zbiór metod pomocniczych, używanych przez poszczególne elementy platformy"""
 
-    @classmethod
-    def show_error(cls, error_message):
+    @staticmethod
+    def show_error(error_message):
         """Wyświetlenie okna z komunikatem błędu."""
 
         messagebox.showerror(Constants.MESSAGE_ERROR, error_message)
 
-    @classmethod
-    def exit_platform(cls, window):
+    @staticmethod
+    def exit_platform(window):
         """Metoda zamyka główne okno aplikacji."""
 
         confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_EXIT, Constants.MESSAGE_CONFIRM_EXIT_TEXT)
@@ -53,8 +53,6 @@ class VerifyUserInput(Auxiliary):
 class Account:
     account_balance = 10000  # aktualny stan wolnych środków na konice
     value_of_shares_held = 0  # aktualna wartość posiadanych akcji
-    total_account_value = account_balance + value_of_shares_held  # całkowita wartość konta
-
     purchased_stock_list = []  # lista posiadanych firm przez użytkownika
 
     # ---------------------------------------------------------------------------- #
@@ -65,7 +63,8 @@ class Account:
     def get_account_balance(self):
         return self.account_balance
 
-    def set_account_balance(self, amount):
+    @staticmethod
+    def set_account_balance(amount):
         Account.account_balance = amount
 
     def increase_account_balance(self, amount):
@@ -82,7 +81,8 @@ class Account:
     def get_value_of_shares_held(self):
         return self.value_of_shares_held
 
-    def set_value_of_shares_held(self, amount):
+    @staticmethod
+    def set_value_of_shares_held(amount):
         Account.value_of_shares_held = amount
 
     def increase_value_of_shares_held(self, amount):
@@ -97,39 +97,38 @@ class Account:
         return Constants.TEXT_TOTAL_ACCOUNT_VALUE + str(self.get_total_account_value()) + Constants.TEXT_CURRENCY
 
     def get_total_account_value(self):
-        return self.total_account_value
+        return self.get_account_balance() + self.get_value_of_shares_held()
 
 
 class NewOrder(Account, VerifyUserInput):
     """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
 
-    def __init__(self):
-        # odczytanie listy firm, których akcje można zakupić
-        self.available_companies = DataProvider.get_companies()
-
     def select_company(self, order_type, company_index, stock_amount):
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
 
-        company = self.available_companies[company_index]
+        company = DataProvider.get_company(company_index)
 
         # weryfikacja danych wprowadzonych przez użytkownika
         verified = self.verify_user_input(stock_amount)
 
         if not verified:
             return
+
+        stock_amount = int(stock_amount)
+        if order_type == Constants.BUY_ORDER:
+            successful_transaction = self.handle_stock_buy_order(company, stock_amount)
+        elif order_type == Constants.SELL_ORDER:
+            successful_transaction = self.handle_stock_sell_order(company, stock_amount)
         else:
-            stock_amount = int(stock_amount)
-            if order_type == Constants.BUY_ORDER:
-                self.handle_stock_buy_order(company, stock_amount)
-            if order_type == Constants.SELL_ORDER:
-                self.handle_stock_sell_order(company, stock_amount)
+            successful_transaction = False
+
+        return successful_transaction
 
     def handle_stock_buy_order(self, company, stock_amount):
         """Obsługa zlecenia zakupu akcji"""
 
         share_price = company.get_price()
         company_name = company.get_name()
-        company_symbol = company.get_symbol()
 
         # obliczenie wartości potencjalnej transakcji
         transaction_value = stock_amount * share_price
@@ -137,6 +136,7 @@ class NewOrder(Account, VerifyUserInput):
         if transaction_value > self.get_account_balance():
             # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
             self.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_FUNDS)
+            successful_transaction = False
         else:
             # prośba o potwierdzenie chęci zakupu + podanie informacji
             _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
@@ -151,10 +151,19 @@ class NewOrder(Account, VerifyUserInput):
                 messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
                                     .format(stock_amount, company_name))
 
+                successful_transaction = True
+            else:
+                successful_transaction = False
+
+        return successful_transaction
+
     def handle_stock_sell_order(self, company, stock_amount):
         """Obsługa zlecenia sprzedaży akcji"""
-        pass
 
+        # TODO: implement method
+        successful_transaction = False
+
+        return successful_transaction
 
 class Transfer(VerifyUserInput, Auxiliary, Account):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""

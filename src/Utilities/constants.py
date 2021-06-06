@@ -13,6 +13,7 @@ class Constants:
     TEXT_WITHDRAW_ALL_BUTTON = 'Wypłać wszystkie środki'
     TEXT_DEPOSIT_BUTTON = 'Wpłać depozyt'
     TEXT_PURCHASE_SHARES_BUTTON = 'Zakup akcje'
+    TEXT_SELL_SHARES_BUTTON = 'Sprzedaj akcje'
     TEXT_AMOUNT = 'Kwota'
     TEXT_CURRENT_BALANCE = 'Saldo: '
     TEXT_VALUE_OF_SHARES_HELD = 'Wartość posiadanych akcji: '

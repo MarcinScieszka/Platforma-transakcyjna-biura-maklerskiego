@@ -28,6 +28,8 @@ class CreateGui:
     def create_widgets(self):
         """Stworzenie, wyświetlenie, przypisanie funkcjonalności widżetów"""
 
+        # --- tworzenie etykiet --- #
+
         # etykieta tytułowa
         self.main_title_label = Label(self.window,
                                       text=Constants.TEXT_MAIN_TITLE,
@@ -129,9 +131,25 @@ class CreateGui:
                                                 cursor=Constants.ACTIVE_CURSOR,
                                                 command=lambda: self.command_handle_transfer(Constants.WITHDRAWAL_ALL))
 
+        # wciśnięcie przycisku wywołuje funkcję obsługującą zakup akcji wybranej firmy
+        self.purchase_shares_button = Button(self.window,
+                                             text=Constants.TEXT_PURCHASE_SHARES_BUTTON,
+                                             background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                             bd=Constants.BUTTON_BORDER_SIZE,
+                                             cursor=Constants.ACTIVE_CURSOR,
+                                             command=lambda: self.command_handle_new_order(Constants.BUY_ORDER))
+
+        # wciśnięcie przycisku wywołuje funkcję obsługującą sprzedaż akcji wybranej firmy
+        self.sell_shares_button = Button(self.window,
+                                         text=Constants.TEXT_SELL_SHARES_BUTTON,
+                                         background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                         bd=Constants.BUTTON_BORDER_SIZE,
+                                         cursor=Constants.ACTIVE_CURSOR,
+                                         command=lambda: self.command_handle_new_order(Constants.SELL_ORDER))
+
         # ---------------------------------------------------------------------------------------------- #
 
-        # wyświetlanie etykiet
+        # --- wyświetlanie etykiet --- #
         self.main_title_label.grid(row=0, column=0, sticky='nsew')
         self.main_description_label.grid(row=1, column=0, sticky='new')
         self.window.columnconfigure(0, weight=1)  # umieszczenie etykiet tytułowych na środku
@@ -142,14 +160,16 @@ class CreateGui:
         self.value_of_shares_held_label.place(x=150, y=540)
         self.total_account_value_label.place(x=500, y=540)
 
-        # wyświetlanie pól tekstowych
+        # --- wyświetlanie pól tekstowych --- #
         self.amount_entry.place(x=70, y=500)
 
-        # wyświetlanie przycisków
+        # --- wyświetlanie przycisków --- #
         self.close_button.place(x=700, y=500)
         self.deposit_amount_button.place(x=200, y=495)
         self.withdraw_amount_button.place(x=300, y=495)
         self.withdraw_all_funds_button.place(x=360, y=495)
+        self.purchase_shares_button.place(x=50, y=400)
+        self.sell_shares_button.place(x=150, y=400)
 
         # ---------------------------------------------------------------------------------------------- #
 
@@ -168,7 +188,7 @@ class CreateGui:
         # odznaczenie elementu z listy, w momencie utraty skupienia
         self.companies_listbox.bind('<FocusOut>', lambda e: self.companies_listbox.selection_clear(0, END))
 
-        self.companies_listbox.place(x=50, y=200)
+        self.companies_listbox.place(x=50, y=175)
 
         # ---------------------------------------------------------------------------------------------- #
 
@@ -194,22 +214,10 @@ class CreateGui:
         # ---------------------------------------------------------------------------------------------- #
 
         # pole tekstowe umożliwiające wybór ilości akcji danej firmy
-        self.stock_amount_spinbox = Spinbox(self.window, from_=1, to=10000, width=10)
-        self.stock_amount_spinbox.place(x=250, y=350)
+        self.stock_amount_spinbox = Spinbox(self.window, from_=1, to=10000, width=8)
+        self.stock_amount_spinbox.place(x=100, y=360)
 
         self.insert_available_companies()
-
-        # wciśnięcie przycisku wywołuje funkcję obsługującą zakup akcji wybranej firmy
-        self.purchase_shares_button = Button(self.window,
-                                             text=Constants.TEXT_PURCHASE_SHARES_BUTTON,
-                                             background=Constants.BUTTON_BACKGROUND_COLOUR,
-                                             bd=Constants.BUTTON_BORDER_SIZE,
-                                             cursor=Constants.ACTIVE_CURSOR,
-                                             command=lambda: self.command_handle_new_order(Constants.BUY_ORDER))
-
-        self.purchase_shares_button.place(x=250, y=300)
-
-        # ---------------------------------------------------------------------------------------------- #
 
     def command_handle_new_order(self, order_type):
         """Metoda obsługuje nowe zlecenie złożone przez użytkownika"""
@@ -242,12 +250,10 @@ class CreateGui:
 
         purchased_company_listbox_index = self.account.purchased_companies_listbox_indexes.get(company_symbol)
 
-        if order_type == Constants.BUY_ORDER:
-            # dokonano zakupu akcji
-
-            self.current_stock_positions_listbox.delete(purchased_company_listbox_index)
-            company_position_size = self.account.purchased_companies.get(company_symbol)
-            self.current_stock_positions_listbox.insert(purchased_company_listbox_index, "{} {}" .format(company_symbol, company_position_size))
+        self.current_stock_positions_listbox.delete(purchased_company_listbox_index)
+        company_position_size = self.account.purchased_companies.get(company_symbol)
+        self.current_stock_positions_listbox.insert(purchased_company_listbox_index,
+                                                    "{}: {}".format(company_symbol, company_position_size))
 
         # aktualizacja etykiety informującej o wysokości wolnych środków na konice
         value_of_shares_held_text = self.account.get_value_of_shares_held_text()

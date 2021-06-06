@@ -13,6 +13,7 @@
     - Możliwość wielokrotnego wypłacania środków.
     - Brak pobieranej prowizji przy wypłacie wynoszącej minimum 300zł
     - Prowizja od wypłaty środków z konta dla kwoty poniżej 300zł wynosząca 30zł.
+    - Minimalna wypłata 50 groszy powyżej wysokości prowizji.
 - Pole tekstowe pozwalające na wybranie wolumenu akcji do zakupu, przycisk pozwalający na zakup akcji, przycisk pozwalający na sprzedaż akcji.
 - Zakup akcji
     - Możliwość wielokrotnego zakupu akcji.
@@ -29,6 +30,6 @@
 3. próba sprzedaży akcji w ilości większej niż aktualnie posiadana - oczekiwana informacja o błędzie
 4. próba zakupu akcji za kwotę większą niż stan wolnych środków - oczekiwana informacja o błędzie
 5. wpłata 500zł na konto - oczekiwane zwiększenie wartości wolnych środków o 500zł
-6. wypłata z konta 200zł - oczekiwane pobranie 30zł prowizji oraz zmniejszenie wartości wolnych środków o 170zł
+6. wypłata z konta 200zł - oczekiwane pobranie prowizji wynoszącej 30zł, wypłata użytkownikowi kwoty 170zł oraz zmniejszenie wartośći wolnych środków o 200zł.
 7. zakup 10 akcji jednej firmy kosztujących 100zł za sztukę - oczekiwane zwiększenie ilości posiadanych akcji danej firmy o 10 oraz zmniejszenie wartości wolnych środków o 1005zł (10 * 100zł + prowizja 5zł, ponieważ 1000zł * 0,2% = 2zł, 2zł < 5zł)
 8. sprzedaż 4 akcji akcji jednej firmy kosztujących 100zł za sztukę - oczekiwane zmniejszenie ilości posiadanych akcji danej firmy o 4 oraz zwiększenie wartości wolnych środków o 400zł

@@ -5,6 +5,8 @@ from src.platform import Account, Transfer, DepositTooSmallException
 
 
 class TestDeposit(unittest.TestCase):
+    """Testy dotyczące wpłat środków pieniężnych na konto użytkownika"""
+
     def test_depositing_amount_above_commission_threshold_should_increase_account_balance_by_amount(self):
         """Test sprawdza próbę wpłaty kwoty powyżej progu minimalnego depozytu.
         Oczekiwane zwiększenie wartości wolnych środków o kwotę depozytu"""

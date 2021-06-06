@@ -44,6 +44,13 @@ class NegativeBalanceException(Error):
         Auxiliary.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
 
 
+class NotEnoughFundsException(Error):
+    """Wyjątek zgłoszony, gdy użytkownik chce zakupić akcje za kwotę większą niż stan wolnych środków"""
+
+    def __init__(self):
+        Auxiliary.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_FUNDS)
+
+
 class VerifyUserInput(Auxiliary):
     """Klasa weryfikuję poprawność danych wprowadzonych przez użytkownika"""
 
@@ -174,8 +181,11 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
 
         if transaction_value > self.get_account_balance():
             # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
-            self.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_FUNDS)
-            successful_transaction = False
+            try:
+                raise NotEnoughFundsException
+            except NotEnoughFundsException:
+                successful_transaction = False
+
         else:
             # prośba o potwierdzenie chęci zakupu + podanie informacji o transakcji
             _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,

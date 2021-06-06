@@ -5,6 +5,8 @@ from src.platform import Account, NegativeBalanceException, PlatformAccount, Tra
 
 
 class TestWithdrawal(unittest.TestCase):
+    """Testy dotyczące wypłat środków pieniężnych z konta użytkownika"""
+
     def test_withdrawing_more_than_account_balance_should_raise_exception(self):
         """Test sprawdza próbę wypłaty z konta kwoty większej niż stan wolnych środków.
         Oczekiwana informacja o błędzie"""

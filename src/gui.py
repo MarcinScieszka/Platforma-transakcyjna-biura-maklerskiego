@@ -9,7 +9,6 @@ class CreateGui:
     """Klasa odpowiedzialna za obsługę graficznego interfejsu programu"""
 
     def __init__(self, window):
-        DataProvider.receive_companies()
         self.account = Account()
         self.transfer = Transfer()
         self.new_order = NewOrder()
@@ -234,9 +233,21 @@ class CreateGui:
         if not successful_transaction:
             return
 
-        # if order_type == Constants.BUY_ORDER:
-        #     # dokonano zakupu akcji
-        self.current_stock_positions_listbox.insert(END, "test")
+        company = DataProvider.get_company(company_index)
+        company_symbol = company.get_symbol()
+
+        if company_symbol not in self.account.purchased_companies_listbox_indexes:
+            # akcje firmy zostały zakupione po raz pierwszy - indeks nowej pozycji zostaje przypisany do słownika
+            self.account.purchased_companies_listbox_indexes[company_symbol] = len(self.account.purchased_companies_listbox_indexes)
+
+        purchased_company_listbox_index = self.account.purchased_companies_listbox_indexes.get(company_symbol)
+
+        if order_type == Constants.BUY_ORDER:
+            # dokonano zakupu akcji
+
+            self.current_stock_positions_listbox.delete(purchased_company_listbox_index)
+            company_position_size = self.account.purchased_companies.get(company_symbol)
+            self.current_stock_positions_listbox.insert(purchased_company_listbox_index, "{} {}" .format(company_symbol, company_position_size))
 
         # aktualizacja etykiety informującej o wysokości wolnych środków na konice
         value_of_shares_held_text = self.account.get_value_of_shares_held_text()

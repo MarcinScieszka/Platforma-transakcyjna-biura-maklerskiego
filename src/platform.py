@@ -3,6 +3,7 @@ from tkinter import messagebox
 from src.Utilities.constants import Constants
 from src.Repository.data_provider import DataProvider
 
+
 # TODO: show list of bought companies
 # TODO: implement selling shares
 # TODO: add sell button
@@ -53,9 +54,10 @@ class VerifyUserInput(Auxiliary):
 class Account:
     account_balance = 10000  # aktualny stan wolnych środków na konice
     value_of_shares_held = 0  # aktualna wartość posiadanych akcji
-    purchased_stock_list = []  # lista posiadanych firm przez użytkownika
 
-    # ---------------------------------------------------------------------------- #
+    DataProvider.instantiate_companies()
+    purchased_companies = DataProvider.make_companies_dict()
+    purchased_companies_listbox_indexes = {}  # pozycje firm na liście zakupionych akcji
 
     def get_current_account_balance_text(self):
         return Constants.TEXT_CURRENT_BALANCE + str(self.get_account_balance()) + Constants.TEXT_CURRENCY
@@ -129,6 +131,7 @@ class NewOrder(Account, VerifyUserInput):
 
         share_price = company.get_price()
         company_name = company.get_name()
+        company_symbol = company.get_symbol()
 
         # obliczenie wartości potencjalnej transakcji
         transaction_value = stock_amount * share_price
@@ -146,7 +149,9 @@ class NewOrder(Account, VerifyUserInput):
             if _response == 1:
                 self.decrease_account_balance(transaction_value)
                 self.increase_value_of_shares_held(transaction_value)
-                self.purchased_stock_list.append(company)
+
+                # aktualizacja liczby posiadanych akcji danej firmy
+                self.purchased_companies[company_symbol] += stock_amount
 
                 messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
                                     .format(stock_amount, company_name))
@@ -164,6 +169,7 @@ class NewOrder(Account, VerifyUserInput):
         successful_transaction = False
 
         return successful_transaction
+
 
 class Transfer(VerifyUserInput, Auxiliary, Account):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""

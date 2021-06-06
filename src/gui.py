@@ -132,12 +132,12 @@ class CreateGui:
                                                 command=lambda: self.command_handle_transfer(Constants.WITHDRAWAL_ALL))
 
         # wciśnięcie przycisku wywołuje funkcję obsługującą zakup akcji wybranej firmy
-        self.purchase_shares_button = Button(self.window,
-                                             text=Constants.TEXT_PURCHASE_SHARES_BUTTON,
-                                             background=Constants.BUTTON_BACKGROUND_COLOUR,
-                                             bd=Constants.BUTTON_BORDER_SIZE,
-                                             cursor=Constants.ACTIVE_CURSOR,
-                                             command=lambda: self.command_handle_new_order(Constants.BUY_ORDER))
+        self.buy_shares_button = Button(self.window,
+                                        text=Constants.TEXT_BUY_SHARES_BUTTON,
+                                        background=Constants.BUTTON_BACKGROUND_COLOUR,
+                                        bd=Constants.BUTTON_BORDER_SIZE,
+                                        cursor=Constants.ACTIVE_CURSOR,
+                                        command=lambda: self.command_handle_new_order(Constants.BUY_ORDER))
 
         # wciśnięcie przycisku wywołuje funkcję obsługującą sprzedaż akcji wybranej firmy
         self.sell_shares_button = Button(self.window,
@@ -168,7 +168,7 @@ class CreateGui:
         self.deposit_amount_button.place(x=200, y=495)
         self.withdraw_amount_button.place(x=300, y=495)
         self.withdraw_all_funds_button.place(x=360, y=495)
-        self.purchase_shares_button.place(x=50, y=400)
+        self.buy_shares_button.place(x=50, y=400)
         self.sell_shares_button.place(x=150, y=400)
 
         # ---------------------------------------------------------------------------------------------- #
@@ -244,19 +244,18 @@ class CreateGui:
         company = DataProvider.get_company(company_index)
         company_symbol = company.get_symbol()
 
-        if company_symbol not in self.account.purchased_companies_listbox_indexes:
+        if company_symbol not in self.account.bought_companies_listbox_indexes:
             # akcje firmy zostały zakupione po raz pierwszy - indeks nowej pozycji zostaje przypisany do słownika
-            self.account.purchased_companies_listbox_indexes[company_symbol] = len(self.account.purchased_companies_listbox_indexes)
+            self.account.bought_companies_listbox_indexes[company_symbol] = len(
+                self.account.bought_companies_listbox_indexes)
 
-        purchased_company_listbox_index = self.account.purchased_companies_listbox_indexes.get(company_symbol)
+        bought_company_listbox_index = self.account.bought_companies_listbox_indexes.get(company_symbol)
 
-        self.current_stock_positions_listbox.delete(purchased_company_listbox_index)
-        company_position_size = self.account.purchased_companies.get(company_symbol)
+        self.current_stock_positions_listbox.delete(bought_company_listbox_index)
+        company_position_size = self.account.bought_companies.get(company_symbol)
 
-        # if self.account.purchased_companies[company_symbol] == 0:
-        self.current_stock_positions_listbox.insert(purchased_company_listbox_index,
+        self.current_stock_positions_listbox.insert(bought_company_listbox_index,
                                                     "{}: {}".format(company_symbol, company_position_size))
-
 
         # aktualizacja etykiety informującej o wysokości wolnych środków na konice
         value_of_shares_held_text = self.account.get_value_of_shares_held_text()

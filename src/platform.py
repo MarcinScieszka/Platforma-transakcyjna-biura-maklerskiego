@@ -63,6 +63,13 @@ class NotEnoughFundsException(Error):
                              Constants.TEXT_CURRENCY)
 
 
+class NotEnoughSharesException(Error):
+    """Wyjątek zgłoszony, gdy użytkownik chce sprzedać więcej akcji, niż aktualnie posiada"""
+
+    def __init__(self):
+        Auxiliary.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_SHARES)
+
+
 class VerifyUserInput(Auxiliary):
     """Klasa weryfikuję poprawność danych wprowadzonych przez użytkownika"""
 
@@ -96,8 +103,8 @@ class Account:
     value_of_shares_held = 0  # aktualna wartość posiadanych akcji
 
     DataProvider.instantiate_companies()
-    purchased_companies = DataProvider.make_companies_dict()
-    purchased_companies_listbox_indexes = {}  # pozycje firm na liście zakupionych akcji
+    bought_companies = DataProvider.make_companies_dict()
+    bought_companies_listbox_indexes = {}  # pozycje firm na liście zakupionych akcji
 
     def get_current_account_balance_text(self):
         return Constants.TEXT_CURRENT_BALANCE + str(self.get_account_balance()) + Constants.TEXT_CURRENCY
@@ -159,33 +166,33 @@ class PlatformAccount:
 class NewOrder(PlatformAccount, Account, Auxiliary):
     """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
 
-    def select_company(self, order_type, company_index, stock_amount):
+    def select_company(self, order_type, company_index, nr_of_shares):
         """Metoda obsługuje wybór firmy z listy dostępnych do zakupu akcji. Dzięki indeksowi na liście możemy powiązać daną pozycję z odpowiadającą jej klasą firmy."""
 
         company = DataProvider.get_company(company_index)
 
         # weryfikacja danych wprowadzonych przez użytkownika
-        verified = VerifyUserInput.verify_user_input(stock_amount)
+        verified = VerifyUserInput.verify_user_input(nr_of_shares)
 
         if not verified:
             return
 
-        stock_amount = int(stock_amount)
+        nr_of_shares = int(nr_of_shares)
         share_price = company.get_price()
 
         # obliczenie wartości potencjalnej transakcji
-        transaction_value = stock_amount * share_price
+        transaction_value = nr_of_shares * share_price
 
         if order_type == Constants.BUY_ORDER:
-            successful_transaction = self.handle_stock_buy_order(company, transaction_value, stock_amount)
+            successful_transaction = self.handle_stock_buy_order(company, transaction_value, nr_of_shares)
         elif order_type == Constants.SELL_ORDER:
-            successful_transaction = self.handle_stock_sell_order(company, transaction_value, stock_amount)
+            successful_transaction = self.handle_stock_sell_order(company, transaction_value, nr_of_shares)
         else:
             successful_transaction = False
 
         return successful_transaction
 
-    def handle_stock_buy_order(self, company, transaction_value, stock_amount):
+    def handle_stock_buy_order(self, company, transaction_value, nr_of_shares_to_buy):
         """Obsługa zlecenia zakupu akcji"""
 
         company_name = company.get_name()
@@ -200,7 +207,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         # prośba o potwierdzenie chęci zakupu + podanie informacji o transakcji
         confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
                                            'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
-                                           .format(stock_amount, company_name, transaction_value + commission))
+                                              .format(nr_of_shares_to_buy, company_name, transaction_value + commission))
 
         if confirmation:
             self.decrease_account_balance(transaction_value + commission)
@@ -208,10 +215,10 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
             self.increase_value_of_shares_held(transaction_value)
 
             # aktualizacja liczby posiadanych akcji danej firmy
-            self.purchased_companies[company_symbol] += stock_amount
+            self.bought_companies[company_symbol] += nr_of_shares_to_buy
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
-                                .format(stock_amount, company_name))
+                                .format(nr_of_shares_to_buy, company_name))
 
             successful_transaction = True
         else:
@@ -220,46 +227,53 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         return successful_transaction
 
     def validate_transaction_value(self, transaction_value):
-        commission = Constants.PURCHASING_SHARES_COMMISSION * transaction_value
+        commission = Constants.BUYING_SHARES_COMMISSION * transaction_value
         if commission < 5.0:
             commission = 5.0
+
         total_transaction_value = transaction_value + commission
         if total_transaction_value > self.get_account_balance():
             # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
             raise NotEnoughFundsException(total_transaction_value)
+
         return commission
 
-    def handle_stock_sell_order(self, company, transaction_value, stock_amount):
+    def handle_stock_sell_order(self, company, transaction_value, nr_of_shares_to_sell):
         """Obsługa zlecenia sprzedaży akcji"""
 
         company_name = company.get_name()
         company_symbol = company.get_symbol()
 
-        if self.purchased_companies[company_symbol] < stock_amount:
-            # użytkownik nie posiada wystarczającej ilości akcji wybranej firmy
-            self.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_SHARES)
+        try:
+            self.check_if_user_has_enough_shares(company_symbol, nr_of_shares_to_sell)
+        except NotEnoughSharesException:
             return
 
         # prośba o potwierdzenie chęci sprzedaży + podanie informacji o transakcji
         confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_SELL_SHARES,
                                            'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
-                                           .format(stock_amount, company_name, transaction_value))
+                                              .format(nr_of_shares_to_sell, company_name, transaction_value))
 
         if confirmation:
             self.increase_account_balance(transaction_value)
             self.decrease_value_of_shares_held(transaction_value)
 
             # aktualizacja liczby posiadanych akcji danej firmy
-            self.purchased_companies[company_symbol] -= stock_amount
+            self.bought_companies[company_symbol] -= nr_of_shares_to_sell
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano sprzedaży {} akcji firmy {}'
-                                .format(stock_amount, company_name))
+                                .format(nr_of_shares_to_sell, company_name))
 
             successful_transaction = True
         else:
             successful_transaction = False
 
         return successful_transaction
+
+    def check_if_user_has_enough_shares(self, company_symbol, stock_amount):
+        if self.bought_companies[company_symbol] < stock_amount:
+            # użytkownik nie posiada wystarczającej ilości akcji wybranej firmy
+            raise NotEnoughSharesException
 
 
 class Transfer(PlatformAccount, Account, Auxiliary):

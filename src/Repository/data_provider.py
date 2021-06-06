@@ -56,6 +56,6 @@ class DataProvider:
             # tworzenie listy symboli wszystkich firm
             company_symbols.append(company.get_symbol())
 
-        purchased_companies = {company_symbol: 0 for company_symbol in company_symbols}
+        owned_companies = {company_symbol: 0 for company_symbol in company_symbols}
 
-        return purchased_companies
+        return owned_companies

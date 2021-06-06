@@ -11,7 +11,7 @@ class Constants:
     MINIMAL_DEPOSIT_AMOUNT = 100
     MINIMAL_WITHDRAWAL_AMOUNT = WITHDRAWAL_COMMISSION_AMOUNT + 0.5
 
-    PURCHASING_SHARES_COMMISSION = 0.002 # prowizja pobierana podczas zakupu akcji
+    BUYING_SHARES_COMMISSION = 0.002 # prowizja pobierana podczas zakupu akcji
 
     # stałe odnoszące się do nazw pól tekstowych
     TEXT_MAIN_TITLE = 'Platforma transakcyjna Future Station'
@@ -20,7 +20,7 @@ class Constants:
     TEXT_WITHDRAW_BUTTON = 'Wypłać'
     TEXT_WITHDRAW_ALL_BUTTON = 'Wypłać wszystkie środki'
     TEXT_DEPOSIT_BUTTON = 'Wpłać depozyt'
-    TEXT_PURCHASE_SHARES_BUTTON = 'Zakup akcje'
+    TEXT_BUY_SHARES_BUTTON = 'Zakup akcje'
     TEXT_SELL_SHARES_BUTTON = 'Sprzedaj akcje'
     TEXT_AMOUNT = 'Kwota'
     TEXT_CURRENT_BALANCE = 'Saldo: '

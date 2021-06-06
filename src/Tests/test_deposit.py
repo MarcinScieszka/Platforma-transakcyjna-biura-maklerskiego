@@ -1,32 +1,33 @@
 import unittest
 
 from src.Utilities.constants import Constants
-from src.platform import Account, Transfer, DepositTooSmallException, NegativeBalanceException
+from src.platform import Account, Transfer, DepositTooSmallException, NegativeBalanceException, PlatformAccount
 
 
 class TestDeposit(unittest.TestCase):
-    def test_depositing_500_should_increase_account_balance_to_500(self):
-        """Test sprawdza próbę wpłaty 500zł na konto
-        oczekiwane zwiększenie wartości wolnych środków o 500zł"""
+    def test_depositing_amount_above_commission_threshold_should_increase_account_balance_by_amount(self):
+        """Test sprawdza próbę wpłaty kwoty powyżej progu minimalnego depozytu.
+        Oczekiwane zwiększenie wartości wolnych środków o kwotę depozytu"""
 
         # given
         account = Account()
+        account.set_account_balance(0)
         transfer = Transfer()
-        deposit_amount = 500
+        deposit_amount = Constants.MINIMAL_DEPOSIT_AMOUNT + 400
 
         # when
         transfer.handle_deposit(deposit_amount)
 
         # then
-        self.assertEqual(500, account.account_balance)
+        self.assertEqual(deposit_amount, account.account_balance)
 
-    def test_depositing_100_should_raise_exception(self):
-        """Test sprawdza próbę wpłaty na konto kwoty poniżej minimalnego progu wpłaty (100zł)
-        oczekiwana informacja o błędzie"""
+    def test_depositing_amount_below_minimal_allowed_should_raise_exception(self):
+        """Test sprawdza próbę wpłaty na konto kwoty poniżej minimalnego progu wpłaty.
+        Oczekiwana informacja o błędzie"""
 
         # given
         transfer = Transfer()
-        deposit_amount = 50
+        deposit_amount = Constants.MINIMAL_DEPOSIT_AMOUNT - 1
 
         # when
         transfer.handle_deposit(deposit_amount)
@@ -34,9 +35,11 @@ class TestDeposit(unittest.TestCase):
         # then
         self.assertRaises(DepositTooSmallException)
 
+
+class TestWithdrawal(unittest.TestCase):
     def test_withdrawing_more_than_account_balance_should_raise_exception(self):
-        """Test sprawdza próbę wypłaty z konta kwoty większej niż stan wolnych środków
-        oczekiwana informacja o błędzie"""
+        """Test sprawdza próbę wypłaty z konta kwoty większej niż stan wolnych środków.
+        Oczekiwana informacja o błędzie"""
 
         # given
         account = Account()
@@ -49,6 +52,28 @@ class TestDeposit(unittest.TestCase):
 
         # then
         self.assertRaises(NegativeBalanceException)
+
+    def test_withdrawing_amount_within_commission_threshold_should_charge_commission(self):
+        """Test sprawdza próbę wypłaty z konta kwoty zawierającej się w zakresie pobierania prowizji.
+        Oczekiwane zmniejszenie wartości wolnych środków na koncie o wartość podaną przez użytkownika, pobranie prowizji i wypłacenie pozostałych środków użytkownikowi"""
+
+        # given
+        account = Account()
+        transfer = Transfer()
+        platform_account = PlatformAccount()
+
+        account_balance_before_withdrawal = 500
+        account.set_account_balance(account_balance_before_withdrawal)
+        withdrawal_amount = Constants.WITHDRAWAL_COMMISSION_THRESHOLD - 100
+
+        # when
+        transfer.handle_withdrawal(withdrawal_amount, Constants.WITHDRAWAL)
+
+        # then
+        expected_account_balance_after_withdrawal = account_balance_before_withdrawal - withdrawal_amount
+        self.assertEqual(expected_account_balance_after_withdrawal, account.account_balance)
+        self.assertEqual(Constants.WITHDRAWAL_COMMISSION_AMOUNT, platform_account.get_platform_balance())
+        self.assertEqual(withdrawal_amount - Constants.WITHDRAWAL_COMMISSION_AMOUNT, transfer.withdrawal_amount)
 
 
 if __name__ == '__main__':

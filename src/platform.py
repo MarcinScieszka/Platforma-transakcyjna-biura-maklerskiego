@@ -32,8 +32,9 @@ class DepositTooSmallException(Error):
 
     def __init__(self, amount):
         self.amount = amount
-        Auxiliary.show_error(Constants.MESSAGE_INSUFFICIENT_DEPOSIT_AMOUNT + str(amount) + Constants.TEXT_CURRENCY + '\n'
-                             + Constants.MESSAGE_MINIMAL_DEPOSIT_AMOUNT)
+        Auxiliary.show_error(
+            Constants.MESSAGE_INSUFFICIENT_DEPOSIT_AMOUNT + str(amount) + Constants.TEXT_CURRENCY + '\n'
+            + Constants.MESSAGE_MINIMAL_DEPOSIT_AMOUNT)
 
 
 class NegativeBalanceException(Error):
@@ -41,7 +42,6 @@ class NegativeBalanceException(Error):
 
     def __init__(self):
         Auxiliary.show_error(Constants.MESSAGE_ERROR_NEGATIVE_BALANCE)
-
 
 
 class VerifyUserInput(Auxiliary):
@@ -123,7 +123,21 @@ class Account:
         return self.get_account_balance() + self.get_value_of_shares_held()
 
 
-class NewOrder(Account, VerifyUserInput):
+class PlatformAccount:
+    platform_balance = 0  # wartość pobranych prowizji przez platformę
+
+    def get_platform_balance(self):
+        return self.platform_balance
+
+    @staticmethod
+    def set_platform_balance(amount):
+        PlatformAccount.platform_balance = amount
+
+    def increase_platform_balance(self, amount):
+        return self.set_platform_balance(self.get_platform_balance() + amount)
+
+
+class NewOrder(PlatformAccount, Account, Auxiliary):
     """Klasa obsługuje zlecenia zakupu/sprzedaży akcji"""
 
     def select_company(self, order_type, company_index, stock_amount):
@@ -132,7 +146,7 @@ class NewOrder(Account, VerifyUserInput):
         company = DataProvider.get_company(company_index)
 
         # weryfikacja danych wprowadzonych przez użytkownika
-        verified = self.verify_user_input(stock_amount)
+        verified = VerifyUserInput.verify_user_input(stock_amount)
 
         if not verified:
             return
@@ -217,13 +231,17 @@ class NewOrder(Account, VerifyUserInput):
         return successful_transaction
 
 
-class Transfer(VerifyUserInput, Auxiliary, Account):
+class Transfer(PlatformAccount, Account, Auxiliary):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
+
+    def __init__(self):
+        self.paid_commission_amount = 0
+        self.withdrawal_amount = 0
 
     def handle_deposit(self, amount):
         """Metoda obsługuje wpłatę środków na konto"""
 
-        verified_input = self.verify_user_input(str(amount))
+        verified_input = VerifyUserInput.verify_user_input(str(amount))
         if not verified_input:
             # użytkownik nie podał poprawnej kwoty
             return
@@ -263,12 +281,12 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
         if withdrawal_option == Constants.WITHDRAWAL:
             # użytkownik wybrał wypłatę danej kwoty z konta
 
-            correct_input = self.verify_user_input(str(amount))
+            correct_input = VerifyUserInput.verify_user_input(str(amount))
             if not correct_input:
                 return
             else:
                 # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
-                withdrawal_amount = math.floor(float(amount) * 100.0) / 100.0
+                self.withdrawal_amount = math.floor(float(amount) * 100.0) / 100.0
 
         elif withdrawal_option == Constants.WITHDRAWAL_ALL:
             # użytkownik wybrał wypłatę wszystkich wolnych środków z konta
@@ -279,32 +297,39 @@ class Transfer(VerifyUserInput, Auxiliary, Account):
         else:
             return
 
-        correct, will_pay_commission = self.verify_withdrawal_amount(withdrawal_amount,
+        correct, will_pay_commission = self.verify_withdrawal_amount(self.withdrawal_amount,
                                                                      Constants.WITHDRAWAL_COMMISSION_THRESHOLD,
                                                                      Constants.WITHDRAWAL_COMMISSION_AMOUNT)
         if not correct:
             return
 
         if will_pay_commission:
-            commission_amount = Constants.WITHDRAWAL_COMMISSION_AMOUNT
+            # użytkownik płaci prowizję
+            self.paid_commission_amount = Constants.WITHDRAWAL_COMMISSION_AMOUNT
+
+            # pomniejszenie kwoty, którą otrzyma użytkownik o wysokość prowizji
+            self.withdrawal_amount -= self.paid_commission_amount
+
         else:
-            commission_amount = 0
+            # użytkownik nie płaci prowizji
+            self.paid_commission_amount = 0
 
         response = messagebox.askokcancel("Potwierdź wypłatę",
                                           'Czy na pewno chcesz wypłacić {} zł?\n'
-                                          'Prowizja wyniesie: {} zł.'.format(withdrawal_amount, commission_amount))
+                                          'Prowizja wyniesie: {} zł.'.format(self.withdrawal_amount + self.paid_commission_amount,
+                                                                             self.paid_commission_amount))
         if response == 1:  # użytkownik potwierdził chęć wypłaty z konta
-            # dokonujemy wypłaty środków wraz z ewentualnym poborem prowizji
-            paid_commission_amount = 0
-            if will_pay_commission:
-                paid_commission_amount = Constants.WITHDRAWAL_COMMISSION_AMOUNT
-                withdrawal_amount -= Constants.WITHDRAWAL_COMMISSION_AMOUNT
-                self.decrease_account_balance(Constants.WITHDRAWAL_COMMISSION_AMOUNT)
 
-            self.decrease_account_balance(withdrawal_amount)
+            # przekazanie prowizji na konto platformy
+            self.decrease_account_balance(self.paid_commission_amount)
+            self.increase_platform_balance(self.paid_commission_amount)
+
+            # wypłata użytkownikowi kwoty pomniejszonej o wysokość prowizji
+            self.decrease_account_balance(self.withdrawal_amount)
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano wypłaty {} zł.\n'
-                                          'Prowizja wyniosła {} zł.'.format(withdrawal_amount, paid_commission_amount))
+                                          'Prowizja wyniosła {} zł.'.format(self.withdrawal_amount,
+                                                                            self.paid_commission_amount))
 
     def verify_withdrawal_amount(self, withdrawal_amount, withdrawal_commission_threshold,
                                  withdrawal_commission_amount):

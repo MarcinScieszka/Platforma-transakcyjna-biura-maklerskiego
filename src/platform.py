@@ -198,11 +198,11 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
             return successful_transaction
 
         # prośba o potwierdzenie chęci zakupu + podanie informacji o transakcji
-        _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
+        confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
                                            'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
                                            .format(stock_amount, company_name, transaction_value + commission))
 
-        if _response == 1:
+        if confirmation:
             self.decrease_account_balance(transaction_value + commission)
             self.increase_platform_balance(commission)
             self.increase_value_of_shares_held(transaction_value)
@@ -241,11 +241,11 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
             return
 
         # prośba o potwierdzenie chęci sprzedaży + podanie informacji o transakcji
-        _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_SELL_SHARES,
+        confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_SELL_SHARES,
                                            'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
                                            .format(stock_amount, company_name, transaction_value))
 
-        if _response == 1:
+        if confirmation:
             self.increase_account_balance(transaction_value)
             self.decrease_value_of_shares_held(transaction_value)
 
@@ -289,9 +289,9 @@ class Transfer(PlatformAccount, Account, Auxiliary):
             # podana kwota nie spełnia warunków depozytu
             return
 
-        response = messagebox.askokcancel("Potwierdź wpłatę",
+        confirmation = messagebox.askokcancel("Potwierdź wpłatę",
                                           'Czy na pewno chcesz wpłacić {} zł?'.format(deposit_amount))
-        if response == 1:
+        if confirmation:
             # użytkownik potwierdził chęć wpłaty na konto
             self.increase_account_balance(deposit_amount)
 
@@ -344,12 +344,12 @@ class Transfer(PlatformAccount, Account, Auxiliary):
             # użytkownik nie płaci prowizji
             self.paid_commission_amount = 0
 
-        response = messagebox.askokcancel("Potwierdź wypłatę",
+        confirmation = messagebox.askokcancel("Potwierdź wypłatę",
                                           'Czy na pewno chcesz wypłacić {} zł?\n'
                                           'Prowizja wyniesie: {} zł.'.format(
                                               self.withdrawal_amount + self.paid_commission_amount,
                                               self.paid_commission_amount))
-        if response == 1:  # użytkownik potwierdził chęć wypłaty z konta
+        if confirmation:  # użytkownik potwierdził chęć wypłaty z konta
 
             # przekazanie prowizji na konto platformy
             self.decrease_account_balance(self.paid_commission_amount)

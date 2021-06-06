@@ -269,7 +269,7 @@ class Transfer(PlatformAccount, Account, Auxiliary):
         if deposit_amount < Constants.MINIMAL_DEPOSIT_AMOUNT:
             try:
                 raise DepositTooSmallException(deposit_amount)
-            except DepositTooSmallException as err:
+            except DepositTooSmallException:
                 pass
             return False
         else:
@@ -290,8 +290,8 @@ class Transfer(PlatformAccount, Account, Auxiliary):
 
         elif withdrawal_option == Constants.WITHDRAWAL_ALL:
             # użytkownik wybrał wypłatę wszystkich wolnych środków z konta
-            withdrawal_amount = self.get_account_balance()
-            if withdrawal_amount == 0:
+            self.withdrawal_amount = self.get_account_balance()
+            if self.withdrawal_amount == 0:
                 # stan środków na koncie wynosi już 0zł
                 return
         else:

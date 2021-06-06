@@ -1,7 +1,7 @@
 import math
 from tkinter import messagebox
-from src.constants import Constants
-from src.data_provider import DataProvider
+from src.Utilities.constants import Constants
+from src.Repository.data_provider import DataProvider
 
 # TODO: show list of bought companies
 # TODO: implement selling shares

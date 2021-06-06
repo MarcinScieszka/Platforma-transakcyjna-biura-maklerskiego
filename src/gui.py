@@ -1,7 +1,7 @@
 import functools
 from tkinter import *
-from src.constants import Constants
-from src.data_provider import DataProvider
+from src.Utilities.constants import Constants
+from src.Repository.data_provider import DataProvider
 from src.platform import Account, Transfer, Auxiliary, NewOrder
 
 

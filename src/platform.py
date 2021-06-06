@@ -4,11 +4,6 @@ from src.Utilities.constants import Constants
 from src.Repository.data_provider import DataProvider
 
 
-# TODO: show list of bought companies
-# TODO: implement selling shares
-# TODO: add sell button
-
-
 class Auxiliary:
     """Klasa zawiera zbiór metod pomocniczych, używanych przez poszczególne elementy platformy"""
 
@@ -117,31 +112,32 @@ class NewOrder(Account, VerifyUserInput):
             return
 
         stock_amount = int(stock_amount)
+        share_price = company.get_price()
+
+        # obliczenie wartości potencjalnej transakcji
+        transaction_value = stock_amount * share_price
+
         if order_type == Constants.BUY_ORDER:
-            successful_transaction = self.handle_stock_buy_order(company, stock_amount)
+            successful_transaction = self.handle_stock_buy_order(company, transaction_value, stock_amount)
         elif order_type == Constants.SELL_ORDER:
-            successful_transaction = self.handle_stock_sell_order(company, stock_amount)
+            successful_transaction = self.handle_stock_sell_order(company, transaction_value, stock_amount)
         else:
             successful_transaction = False
 
         return successful_transaction
 
-    def handle_stock_buy_order(self, company, stock_amount):
+    def handle_stock_buy_order(self, company, transaction_value, stock_amount):
         """Obsługa zlecenia zakupu akcji"""
 
-        share_price = company.get_price()
         company_name = company.get_name()
         company_symbol = company.get_symbol()
-
-        # obliczenie wartości potencjalnej transakcji
-        transaction_value = stock_amount * share_price
 
         if transaction_value > self.get_account_balance():
             # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
             self.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_FUNDS)
             successful_transaction = False
         else:
-            # prośba o potwierdzenie chęci zakupu + podanie informacji
+            # prośba o potwierdzenie chęci zakupu + podanie informacji o transakcji
             _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
                                                'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
                                                .format(stock_amount, company_name, transaction_value))
@@ -162,11 +158,35 @@ class NewOrder(Account, VerifyUserInput):
 
         return successful_transaction
 
-    def handle_stock_sell_order(self, company, stock_amount):
+    def handle_stock_sell_order(self, company, transaction_value, stock_amount):
         """Obsługa zlecenia sprzedaży akcji"""
 
-        # TODO: implement method
-        successful_transaction = False
+        company_name = company.get_name()
+        company_symbol = company.get_symbol()
+
+        if self.purchased_companies[company_symbol] < stock_amount:
+            # użytkownik nie posiada wystarczającej ilości akcji wybranej firmy
+            self.show_error(Constants.MESSAGE_ERROR_NOT_ENOUGH_SHARES)
+            return
+
+        # prośba o potwierdzenie chęci sprzedaży + podanie informacji o transakcji
+        _response = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_SELL_SHARES,
+                                           'Czy na pewno chcesz zakupić {} akcji firmy {} za kwotę {} zł?'
+                                           .format(stock_amount, company_name, transaction_value))
+
+        if _response == 1:
+            self.increase_account_balance(transaction_value)
+            self.decrease_value_of_shares_held(transaction_value)
+
+            # aktualizacja liczby posiadanych akcji danej firmy
+            self.purchased_companies[company_symbol] -= stock_amount
+
+            messagebox.showinfo('Sukces', 'Pomyślnie dokonano sprzedaży {} akcji firmy {}'
+                                .format(stock_amount, company_name))
+
+            successful_transaction = True
+        else:
+            successful_transaction = False
 
         return successful_transaction
 

@@ -252,8 +252,11 @@ class CreateGui:
 
         self.current_stock_positions_listbox.delete(purchased_company_listbox_index)
         company_position_size = self.account.purchased_companies.get(company_symbol)
+
+        # if self.account.purchased_companies[company_symbol] == 0:
         self.current_stock_positions_listbox.insert(purchased_company_listbox_index,
                                                     "{}: {}".format(company_symbol, company_position_size))
+
 
         # aktualizacja etykiety informującej o wysokości wolnych środków na konice
         value_of_shares_held_text = self.account.get_value_of_shares_held_text()

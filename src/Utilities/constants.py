@@ -37,12 +37,13 @@ class Constants:
     # stałe odnoszące się do treści komunikatów
     MESSAGE_ERROR = 'Błąd'
     MESSAGE_ERROR_VALUE = 'Podano nieprawidłową wartość'
-    MESSAGE_ERROR_NEGATIVE_BALANCE = 'Niewystarczająca ilość środków do wypłaty'
-    MESSAGE_ERROR_NOT_ENOUGH_FUNDS = 'Niewystarczająca ilość środków do zakupu akcji'
+    MESSAGE_ERROR_NEGATIVE_BALANCE = 'Niewystarczający stan środków do wypłaty'
+    MESSAGE_ERROR_NOT_ENOUGH_FUNDS = 'Niewystarczający stan środków do zakupu akcji'
+    MESSAGE_ERROR_NOT_ENOUGH_SHARES = 'Niewystarczająca liczba posiadanych akcji do sprzedaży'
 
     MESSAGE_CONFIRM_EXIT = 'Potwierdź wyjście'
     MESSAGE_CONFIRM_EXIT_TEXT = 'Czy na pewno chcesz opuścić platformę?'
-
+    MESSAGE_CONFIRM_SELL_SHARES = 'Potwierdź sprzedaż akcji'
     MESSAGE_CONFIRM_BUY_SHARES = 'Potwierdź zakup akcji'
 
     # stałe odnoszące się do statusu transakcji gotówkowych wybranego przez użytkownika

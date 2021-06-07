@@ -1,7 +1,7 @@
 import unittest
 
 from src.Utilities.constants import Constants
-from src.platform import Account, Transfer, MinimalDepositException
+from src.trading_platform import Account, Transfer, MinimalDepositException
 
 
 class TestDeposit(unittest.TestCase):

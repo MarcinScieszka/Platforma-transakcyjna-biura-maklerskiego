@@ -1,6 +1,6 @@
-from src.Utilities.constants import Constants
-from src.Repository.data import Data
 from src.Repository.company import Company
+from src.Repository.data import Data
+from src.Utilities.constants import Constants
 
 
 class DataProvider(Data):

@@ -1,7 +1,7 @@
 import unittest
 
 from src.Utilities.constants import Constants
-from src.platform import Account, NegativeBalanceException, PlatformAccount, Transfer
+from src.trading_platform import Account, NegativeBalanceException, PlatformAccount, Transfer
 
 
 class TestWithdrawal(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
 
 from src.Repository.data_provider import DataProvider
-from src.platform import Account, NewOrder, NotEnoughSharesException
+from src.trading_platform import Account, NewOrder, NotEnoughSharesException
 
 
 class TestSellShares(unittest.TestCase):

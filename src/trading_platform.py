@@ -1,7 +1,8 @@
 import math
 from tkinter import messagebox
-from src.Utilities.constants import Constants
+
 from src.Repository.data_provider import DataProvider
+from src.Utilities.constants import Constants
 
 
 class Auxiliary:
@@ -379,6 +380,7 @@ class Transfer(PlatformAccount, Account, Auxiliary):
 
         else:
             # użytkownik nie płaci prowizji
+            self.withdrawal_amount_given_to_user = withdrawal_amount
             self.paid_commission_amount = 0
 
         confirmation = messagebox.askokcancel("Potwierdź wypłatę",

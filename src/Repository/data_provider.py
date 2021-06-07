@@ -13,17 +13,13 @@ class DataProvider(Data):
         Na podstawie powyższej tablicy tworzona zostaje lista obiektów klasy Company."""
 
         companies_list = Data._companies_list
-
-        for company in companies_list:
-            company_name, company_share_price, company_symbol = cls.separate_company_values(company)
-
-            cls.__companies.append(Company(company_name, company_symbol, company_share_price))
+        cls.__companies = [cls.create_company_objects(company) for company in companies_list]
 
     @staticmethod
-    def separate_company_values(company):
+    def create_company_objects(company):
         """Metoda oddziela poszczególne parametry separowane przecinkiem,
         białe znaki z początku i końca parametrów zostają usunięte,
-        zwracane wartości: nazwa, cena za akcję, symbol danej firmy"""
+        Metoda zwraca obiekt Company z argumentami: nazwa, cena za akcję oraz symbol danej firmy"""
 
         separate = company.split(Constants.DATA_SEPARATOR)
         company_name = separate[0].strip()
@@ -31,7 +27,7 @@ class DataProvider(Data):
         company_share_price_str = separate[2].strip()
         company_share_price = float(company_share_price_str)
 
-        return company_name, company_share_price, company_symbol
+        return Company(company_name, company_symbol, company_share_price)
 
     @classmethod
     def get_company(cls, company_index):

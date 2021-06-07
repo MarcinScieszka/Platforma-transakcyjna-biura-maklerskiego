@@ -95,15 +95,13 @@ class CreateGui:
 
         # tworzenie pól tekstowych
         self.amount_entry_text = StringVar()
-        limit_entry(self.amount_entry_text, 8)
+        self.limit_entry(self.amount_entry_text, Constants.ENTRY_NR_OF_CHARACTERS) # ograniczenie długości kwoty
         self.amount_entry = Entry(self.window,
-                                  textvariable=self.amount_entry_text, #Constants.TEXT_AMOUNT,
+                                  textvariable=self.amount_entry_text,  # Constants.TEXT_AMOUNT,
                                   bd=Constants.ENTRY_BORDER_SIZE,
                                   font=(Constants.FONT_TYPEFACE, Constants.ENTRY_FONT_SIZE),
                                   justify=CENTER,
                                   width=Constants.ENTRY_WIDTH)
-
-
 
         # ---tworzenie przycisków--- #
 
@@ -166,7 +164,7 @@ class CreateGui:
 
         self.amount_label.place(x=0, y=500)
         self.account_balance_label.place(x=0, y=540)
-        self.value_of_shares_held_label.place(x=150, y=540)
+        self.value_of_shares_held_label.place(x=180, y=540)
         self.total_account_value_label.place(x=500, y=540)
 
         # --- wyświetlanie pól tekstowych --- #
@@ -210,7 +208,7 @@ class CreateGui:
                                                        font=Constants.FONT_TYPEFACE,
                                                        cursor=Constants.ACTIVE_CURSOR,
                                                        bd=Constants.LISTBOX_BORDER_SIZE,
-                                                       justify=RIGHT,
+                                                       justify=CENTER,
                                                        highlightthickness=Constants.LISTBOX_HIGHLIGHT_THICKNESS)
 
         # odznaczenie elementu z listy, w momencie utraty skupienia
@@ -326,9 +324,12 @@ class CreateGui:
 
         label_text_var.set(label_text)
 
-def limit_entry(str_var, length):
-    def callback(str_var):
-        c = str_var.get()[0:length]
-        str_var.set(c)
+    @staticmethod
+    def limit_entry(str_var, length):
+        """Metoda ogranicza możliwość wpisywania znaków w polu tekstowym do długości otrzymanej w argumencie"""
 
-    str_var.trace("w", lambda name, index, mode, str_var=str_var: callback(str_var))
+        def callback(str_var):
+            c = str_var.get()[0:length]
+            str_var.set(c)
+
+        str_var.trace("w", lambda name, index, mode, str_var=str_var: callback(str_var))

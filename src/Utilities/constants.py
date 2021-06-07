@@ -87,3 +87,4 @@ class Constants:
     ENTRY_FONT_SIZE = 10
     ENTRY_BORDER_SIZE = 0
     ENTRY_WIDTH = 10
+    ENTRY_NR_OF_CHARACTERS = 8

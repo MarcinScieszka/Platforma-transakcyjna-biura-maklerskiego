@@ -11,6 +11,9 @@ class TestWithdrawal(unittest.TestCase):
     def setUpClass(cls):
         cls.account = Account()
         cls.transfer = Transfer()
+        cls.platform_account = PlatformAccount()
+        cls.account.set_account_balance(500)
+        cls.platform_account.set_platform_balance(0)
 
     def test_withdrawing_more_than_account_balance_should_raise_exception(self):
         """Test sprawdza próbę wypłaty z konta kwoty większej niż stan wolnych środków.
@@ -29,11 +32,9 @@ class TestWithdrawal(unittest.TestCase):
         Oczekiwane zmniejszenie wartości wolnych środków na koncie o wartość podaną przez użytkownika, pobranie prowizji i wypłacenie pozostałych środków użytkownikowi"""
 
         # given
-        platform_account = PlatformAccount()
-        account_balance_before_withdrawal = 500
-        self.account.set_account_balance(account_balance_before_withdrawal)
+        account_balance_before_withdrawal = self.account.get_account_balance()
         withdrawal_amount = Constants.WITHDRAWAL_COMMISSION_THRESHOLD - 100
-        platform_balance_before_withdrawal = platform_account.get_platform_balance()
+        platform_balance_before_withdrawal = self.platform_account.get_platform_balance()
         expected_account_balance_after_withdrawal = account_balance_before_withdrawal - withdrawal_amount
         expected_platform_balance_after_withdrawal = platform_balance_before_withdrawal + Constants.WITHDRAWAL_COMMISSION_AMOUNT
         expected_withdrawal_amount_given_to_user = withdrawal_amount - Constants.WITHDRAWAL_COMMISSION_AMOUNT
@@ -43,7 +44,28 @@ class TestWithdrawal(unittest.TestCase):
 
         # then
         self.assertEqual(expected_account_balance_after_withdrawal, self.account.get_account_balance())
-        self.assertEqual(expected_platform_balance_after_withdrawal, platform_account.get_platform_balance())
+        self.assertEqual(expected_platform_balance_after_withdrawal, self.platform_account.get_platform_balance())
+        self.assertEqual(expected_withdrawal_amount_given_to_user, self.transfer.withdrawal_amount_given_to_user)
+
+    def test_withdrawing_amount_above_commission_threshold_should_not_charge_commission(self):
+        """Test sprawdza próbę wypłaty z konta kwoty powyżej progu pobierania prowizji.
+        Oczekiwane zmniejszenie wartości wolnych środków na koncie o wartość podaną przez użytkownika, brak pobrania prowizji, wypłacenie wszystkich środków użytkownikowi"""
+
+        # given
+        account_balance_before_withdrawal = self.account.get_account_balance()
+        withdrawal_amount = Constants.WITHDRAWAL_COMMISSION_THRESHOLD + 100
+        platform_balance_before_withdrawal = self.platform_account.get_platform_balance()
+
+        expected_account_balance_after_withdrawal = account_balance_before_withdrawal - withdrawal_amount
+        expected_platform_balance_after_withdrawal = platform_balance_before_withdrawal
+        expected_withdrawal_amount_given_to_user = withdrawal_amount
+
+        # when
+        self.transfer.handle_withdrawal(withdrawal_amount, Constants.WITHDRAWAL)
+
+        # then
+        self.assertEqual(expected_account_balance_after_withdrawal, self.account.get_account_balance())
+        self.assertEqual(expected_platform_balance_after_withdrawal, self.platform_account.get_platform_balance())
         self.assertEqual(expected_withdrawal_amount_given_to_user, self.transfer.withdrawal_amount_given_to_user)
 
 

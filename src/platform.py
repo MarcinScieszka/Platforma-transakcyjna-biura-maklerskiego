@@ -99,22 +99,40 @@ class VerifyUserInput(Auxiliary):
 
 
 class Account:
-    account_balance = 0  # aktualny stan wolnych środków na konice
-    value_of_shares_held = 0  # aktualna wartość posiadanych akcji
+    DataProvider.instantiate_companies()  # stworzenie instancji obiektów firm
+    __account_balance = 0  # aktualny stan wolnych środków na konice
+    __value_of_shares_held = 0  # aktualna wartość posiadanych akcji
+    _owned_shares_tracker = DataProvider.make_companies_dict()  # słownik z aktualną liczbą posiadanych akcji poszczególnych firm
+    _bought_companies_listbox_indexes = {}  # pozycje firm na liście zakupionych akcji
 
-    DataProvider.instantiate_companies()
-    bought_companies = DataProvider.make_companies_dict()
-    bought_companies_listbox_indexes = {}  # pozycje firm na liście zakupionych akcji
+    def check_if_company_is_already_bought(self, company_symbol) -> bool:
+        if company_symbol in self._bought_companies_listbox_indexes:
+            return True
+        else:
+            return False
+
+    def get_bought_company_listbox_index(self, company_symbol):
+        return self._bought_companies_listbox_indexes.get(company_symbol)
+
+    def append_bought_company_to_listbox(self, company_symbol):
+        self._bought_companies_listbox_indexes[company_symbol] = len(
+            self._bought_companies_listbox_indexes)
+
+    def get_nr_of_shares_owned(self, company_symbol):
+        return self._owned_shares_tracker.get(company_symbol)
+
+    def set_nr_of_owned_shares(self, company_symbol, amount):
+        self._owned_shares_tracker[company_symbol] = amount
 
     def get_current_account_balance_text(self):
         return Constants.TEXT_CURRENT_BALANCE + str(self.get_account_balance()) + Constants.TEXT_CURRENCY
 
     def get_account_balance(self):
-        return self.account_balance
+        return self.__account_balance
 
     @staticmethod
     def set_account_balance(amount):
-        Account.account_balance = amount
+        Account.__account_balance = amount
 
     def increase_account_balance(self, amount):
         self.set_account_balance(self.get_account_balance() + amount)
@@ -128,11 +146,11 @@ class Account:
         return Constants.TEXT_VALUE_OF_SHARES_HELD + str(self.get_value_of_shares_held()) + Constants.TEXT_CURRENCY
 
     def get_value_of_shares_held(self):
-        return self.value_of_shares_held
+        return self.__value_of_shares_held
 
     @staticmethod
     def set_value_of_shares_held(amount):
-        Account.value_of_shares_held = amount
+        Account.__value_of_shares_held = amount
 
     def increase_value_of_shares_held(self, amount):
         self.set_value_of_shares_held(self.get_value_of_shares_held() + amount)
@@ -148,16 +166,20 @@ class Account:
     def get_total_account_value(self):
         return self.get_account_balance() + self.get_value_of_shares_held()
 
+    @property
+    def bought_companies_listbox_indexes(self):
+        return self._bought_companies_listbox_indexes
+
 
 class PlatformAccount:
-    platform_balance = 0  # wartość pobranych prowizji przez platformę
+    _platform_balance = 0  # wartość pobranych prowizji przez platformę
 
     def get_platform_balance(self):
-        return self.platform_balance
+        return self._platform_balance
 
     @staticmethod
     def set_platform_balance(amount):
-        PlatformAccount.platform_balance = amount
+        PlatformAccount._platform_balance = amount
 
     def increase_platform_balance(self, amount):
         return self.set_platform_balance(self.get_platform_balance() + amount)
@@ -215,7 +237,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
             self.increase_value_of_shares_held(transaction_value)
 
             # aktualizacja liczby posiadanych akcji danej firmy
-            self.bought_companies[company_symbol] += nr_of_shares_to_buy
+            self._owned_shares_tracker[company_symbol] += nr_of_shares_to_buy
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
                                 .format(nr_of_shares_to_buy, company_name))
@@ -259,7 +281,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
             self.decrease_value_of_shares_held(transaction_value)
 
             # aktualizacja liczby posiadanych akcji danej firmy
-            self.bought_companies[company_symbol] -= nr_of_shares_to_sell
+            self._owned_shares_tracker[company_symbol] -= nr_of_shares_to_sell
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano sprzedaży {} akcji firmy {}'
                                 .format(nr_of_shares_to_sell, company_name))
@@ -271,7 +293,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         return successful_transaction
 
     def check_if_user_has_enough_shares(self, company_symbol, stock_amount):
-        if self.bought_companies[company_symbol] < stock_amount:
+        if self._owned_shares_tracker[company_symbol] < stock_amount:
             # użytkownik nie posiada wystarczającej ilości akcji wybranej firmy
             raise NotEnoughSharesException
 
@@ -280,8 +302,9 @@ class Transfer(PlatformAccount, Account, Auxiliary):
     """Obsługa transakcji wpłaty i wypłaty środków oraz aktualizacja stanu środków na kocie."""
 
     def __init__(self):
+        super().__init__()
         self.paid_commission_amount = 0
-        self.withdrawal_amount = 0
+        self.withdrawal_amount_given_to_user = 0
 
     def handle_deposit(self, amount):
         """Metoda obsługuje wpłatę środków na konto"""
@@ -331,19 +354,19 @@ class Transfer(PlatformAccount, Account, Auxiliary):
                 return
             else:
                 # kwota jest poprawna, ucinamy nadmiarową kwotę do dwóch miejsc po przecinku
-                self.withdrawal_amount = math.floor(float(amount) * 100.0) / 100.0
+                withdrawal_amount = math.floor(float(amount) * 100.0) / 100.0
 
         elif withdrawal_option == Constants.WITHDRAWAL_ALL:
             # użytkownik wybrał wypłatę wszystkich wolnych środków z konta
-            self.withdrawal_amount = self.get_account_balance()
-            if self.withdrawal_amount == 0:
+            withdrawal_amount = self.get_account_balance()
+            if withdrawal_amount == 0:
                 # stan środków na koncie wynosi już 0zł
                 return
         else:
             return
 
         try:
-            will_pay_commission = self.verify_withdrawal_amount(self.withdrawal_amount)
+            will_pay_commission = self.verify_withdrawal_amount(withdrawal_amount)
         except (MinimalWithdrawalException, NegativeBalanceException):
             return
 
@@ -352,7 +375,7 @@ class Transfer(PlatformAccount, Account, Auxiliary):
             self.paid_commission_amount = Constants.WITHDRAWAL_COMMISSION_AMOUNT
 
             # pomniejszenie kwoty, którą otrzyma użytkownik o wysokość prowizji
-            self.withdrawal_amount -= self.paid_commission_amount
+            self.withdrawal_amount_given_to_user = withdrawal_amount - self.paid_commission_amount
 
         else:
             # użytkownik nie płaci prowizji
@@ -361,7 +384,7 @@ class Transfer(PlatformAccount, Account, Auxiliary):
         confirmation = messagebox.askokcancel("Potwierdź wypłatę",
                                           'Czy na pewno chcesz wypłacić {} zł?\n'
                                           'Prowizja wyniesie: {} zł.'.format(
-                                              self.withdrawal_amount + self.paid_commission_amount,
+                                              self.withdrawal_amount_given_to_user + self.paid_commission_amount,
                                               self.paid_commission_amount))
         if confirmation:  # użytkownik potwierdził chęć wypłaty z konta
 
@@ -370,10 +393,10 @@ class Transfer(PlatformAccount, Account, Auxiliary):
             self.increase_platform_balance(self.paid_commission_amount)
 
             # wypłata użytkownikowi kwoty pomniejszonej o wysokość prowizji
-            self.decrease_account_balance(self.withdrawal_amount)
+            self.decrease_account_balance(self.withdrawal_amount_given_to_user)
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano wypłaty {} zł.\n'
-                                          'Prowizja wyniosła {} zł.'.format(self.withdrawal_amount,
+                                          'Prowizja wyniosła {} zł.'.format(self.withdrawal_amount_given_to_user,
                                                                             self.paid_commission_amount))
 
     def verify_withdrawal_amount(self, withdrawal_amount):

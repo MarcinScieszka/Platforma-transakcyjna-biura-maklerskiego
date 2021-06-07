@@ -33,7 +33,6 @@ class TestBuyShares(unittest.TestCase):
         zmniejszenie wartości wolnych środków o wartość akcji powiększoną o kwotę prowizji"""
 
         # given
-        DataProvider.instantiate_companies()
         company = DataProvider.get_company(5)
         platform_account = PlatformAccount()
         self.account_balance_before_transaction = 5000
@@ -41,14 +40,15 @@ class TestBuyShares(unittest.TestCase):
         nr_of_shares_willing_to_buy = 10
         transaction_value = company.get_price() * nr_of_shares_willing_to_buy
         expected_commission = 5.0
+        expected_account_balance_after_transaction = self.account_balance_before_transaction - (transaction_value + expected_commission)
 
         # when
         self.new_order.handle_stock_buy_order(company, transaction_value, nr_of_shares_willing_to_buy)
 
         # then
-        self.assertEqual(nr_of_shares_willing_to_buy, self.account.bought_companies[company.get_symbol()])
-        self.assertEqual(expected_commission, platform_account.platform_balance)
-        self.assertEqual(self.account_balance_before_transaction - (transaction_value + expected_commission), self.account.get_account_balance())
+        self.assertEqual(nr_of_shares_willing_to_buy, self.account.get_nr_of_shares_owned(company.get_symbol()))
+        self.assertEqual(expected_commission, platform_account.get_platform_balance())
+        self.assertEqual(expected_account_balance_after_transaction, self.account.get_account_balance())
 
 
 if __name__ == '__main__':

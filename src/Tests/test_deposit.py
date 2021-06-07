@@ -24,7 +24,7 @@ class TestDeposit(unittest.TestCase):
         self.transfer.handle_deposit(deposit_amount)
 
         # then
-        self.assertEqual(deposit_amount, account.account_balance)
+        self.assertEqual(deposit_amount, account.get_account_balance())
 
     def test_depositing_amount_below_minimal_allowed_should_raise_exception(self):
         """Test sprawdza próbę wpłaty na konto kwoty poniżej minimalnego progu wpłaty.

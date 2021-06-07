@@ -2,7 +2,7 @@ import functools
 from tkinter import *
 from src.Utilities.constants import Constants
 from src.Repository.data_provider import DataProvider
-from src.platform import Account, Transfer, Auxiliary, NewOrder, VerifyUserInput
+from src.platform import Account, Transfer, Auxiliary, NewOrder
 
 
 class CreateGui:
@@ -59,7 +59,7 @@ class CreateGui:
                                   font=(Constants.FONT_TYPEFACE,
                                         Constants.FONT_SIZE_REGULAR))
 
-        # eykieta wartości wolnych środków na koncie
+        # etykieta wartości wolnych środków na koncie
         self.account_balance_label_text = StringVar()
         self.account_balance_label_text.set(self.account.get_current_account_balance_text())
         self.account_balance_label = Label(self.window,
@@ -244,15 +244,14 @@ class CreateGui:
         company = DataProvider.get_company(company_index)
         company_symbol = company.get_symbol()
 
-        if company_symbol not in self.account.bought_companies_listbox_indexes:
+        if not self.account.check_if_company_is_already_bought(company_symbol):
             # akcje firmy zostały zakupione po raz pierwszy - indeks nowej pozycji zostaje przypisany do słownika
-            self.account.bought_companies_listbox_indexes[company_symbol] = len(
-                self.account.bought_companies_listbox_indexes)
+            self.account.append_bought_company_to_listbox(company_symbol)
 
-        bought_company_listbox_index = self.account.bought_companies_listbox_indexes.get(company_symbol)
+        bought_company_listbox_index = self.account.get_bought_company_listbox_index(company_symbol)
 
         self.current_stock_positions_listbox.delete(bought_company_listbox_index)
-        company_position_size = self.account.bought_companies.get(company_symbol)
+        company_position_size = self.account.get_nr_of_shares_owned(company_symbol)
 
         self.current_stock_positions_listbox.insert(bought_company_listbox_index,
                                                     "{}: {}".format(company_symbol, company_position_size))

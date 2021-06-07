@@ -3,7 +3,7 @@ from src.Repository.data import Data
 from src.Repository.company import Company
 
 
-class DataProvider:
+class DataProvider(Data):
     __companies = []
 
     @classmethod
@@ -12,7 +12,7 @@ class DataProvider:
         companies_list zawiera nazwę firmy, jej symbol oraz cenę za jedną akcję.
         Na podstawie powyższej tablicy tworzona zostaje lista obiektów klasy Company."""
 
-        companies_list = Data.companies_list
+        companies_list = Data._companies_list
 
         for company in companies_list:
             company_name, company_share_price, company_symbol = cls.separate_company_values(company)
@@ -51,10 +51,8 @@ class DataProvider:
         klucze to symbole firm
         wartości są zerami - domyślnie użytkownik nie posiada akcji żadnej firmy"""
 
-        company_symbols = []
-        for company in cls.__companies:
-            # tworzenie listy symboli wszystkich firm
-            company_symbols.append(company.get_symbol())
+        # tworzenie listy symboli wszystkich firm
+        company_symbols = [company.get_symbol() for company in cls.__companies]
 
         owned_companies = {company_symbol: 0 for company_symbol in company_symbols}
 

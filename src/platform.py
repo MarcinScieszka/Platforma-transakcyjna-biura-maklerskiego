@@ -203,7 +203,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         share_price = company.get_price()
 
         # obliczenie wartości potencjalnej transakcji
-        transaction_value = nr_of_shares * share_price
+        transaction_value = round(nr_of_shares * share_price, 2)
 
         if order_type == Constants.BUY_ORDER:
             successful_transaction = self.handle_stock_buy_order(company, transaction_value, nr_of_shares)
@@ -249,11 +249,11 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         return successful_transaction
 
     def validate_transaction_value(self, transaction_value):
-        commission = Constants.BUYING_SHARES_COMMISSION * transaction_value
+        commission = round(Constants.BUYING_SHARES_COMMISSION * transaction_value, 2)
         if commission < 5.0:
             commission = 5.0
 
-        total_transaction_value = transaction_value + commission
+        total_transaction_value = round(transaction_value + commission, 2)
         if total_transaction_value > self.get_account_balance():
             # użytkownik nie posiada wystarczającej ilości środków na koncie do dokonania zakupu akcji
             raise NotEnoughFundsException(total_transaction_value)

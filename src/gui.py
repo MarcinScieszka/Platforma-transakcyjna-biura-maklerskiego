@@ -6,7 +6,7 @@ from src.Utilities.constants import Constants
 from src.trading_platform import Account, Transfer, Auxiliary, NewOrder
 
 
-class CreateGui:
+class Gui:
     """Klasa odpowiedzialna za obsługę graficznego interfejsu programu"""
 
     def __init__(self, window):

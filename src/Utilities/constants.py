@@ -2,7 +2,7 @@ class Constants:
     """Klasa zawierająca stałe, które zostały wykorzystane podczas implementacji programu"""
 
     # stałe konfiguracyjne
-    WINDOW_SIZE = "800x600"
+    WINDOW_SIZE = '800x600'
     TEXT_WINDOW_TITLE = 'Platforma transakcyjna'
 
     # stałe dotyczące warunków dokonywania wpłat/wypłat
@@ -31,8 +31,9 @@ class Constants:
     # stałe odnoszące się do zastosowanej palety kolorów
     COLOUR_BACKGROUND = '#2A2A2E'
     COLOUR_TEXT = '#FAFAFA'
-    LISTBOX_SELECTION_BACKGROUND = '#800080'  # purple
-    LISTBOX_TEXT_COLOUR = '#ffffff'  # light colour
+    LISTBOX_SELECTION_BACKGROUND = '#800080'
+    LISTBOX_BACKGROUND_COLOUR = '#2A2A2E'
+    LISTBOX_TEXT_COLOUR = '#ffffff'
     BUTTON_BACKGROUND_COLOUR = '#f1f1f1'
 
     # stałe odnoszące się do właściwości tekstu

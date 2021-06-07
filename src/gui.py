@@ -182,7 +182,7 @@ class CreateGui:
 
         # stworzenie listy dostępnych firm
         self.companies_listbox = Listbox(self.window,
-                                         bg=Constants.COLOUR_BACKGROUND,
+                                         bg=Constants.LISTBOX_BACKGROUND_COLOUR,
                                          selectbackground=Constants.LISTBOX_SELECTION_BACKGROUND,
                                          fg=Constants.LISTBOX_TEXT_COLOUR,
                                          width=Constants.LISTBOX_WIDTH,
@@ -195,13 +195,13 @@ class CreateGui:
         # odznaczenie elementu z listy, w momencie utraty skupienia
         self.companies_listbox.bind('<FocusOut>', lambda e: self.companies_listbox.selection_clear(0, END))
 
-        self.companies_listbox.place(x=50, y=175)
+        self.companies_listbox.place(x=50, y=150)
 
         # ---------------------------------------------------------------------------------------------- #
 
         # stworzenie listy zakupionych firm
         self.current_stock_positions_listbox = Listbox(self.window,
-                                                       bg=Constants.COLOUR_BACKGROUND,
+                                                       bg=Constants.LISTBOX_BACKGROUND_COLOUR,
                                                        selectbackground=Constants.LISTBOX_SELECTION_BACKGROUND,
                                                        fg=Constants.LISTBOX_TEXT_COLOUR,
                                                        width=Constants.LISTBOX_WIDTH,
@@ -216,7 +216,7 @@ class CreateGui:
                                                   lambda e: self.current_stock_positions_listbox.selection_clear(0,
                                                                                                                  END))
 
-        self.current_stock_positions_listbox.place(x=500, y=200)
+        self.current_stock_positions_listbox.place(x=500, y=150)
 
         # ---------------------------------------------------------------------------------------------- #
 

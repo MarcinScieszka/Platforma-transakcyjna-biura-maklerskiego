@@ -82,3 +82,8 @@ class Constants:
     LISTBOX_WIDTH = 18
     LISTBOX_BORDER_SIZE = 0
     LISTBOX_HIGHLIGHT_THICKNESS = 0
+
+    # konfiguracja pola wpisowego
+    ENTRY_FONT_SIZE = 10
+    ENTRY_BORDER_SIZE = 0
+    ENTRY_WIDTH = 10

@@ -1,8 +1,9 @@
 import functools
 from tkinter import *
-from src.Utilities.constants import Constants
+
 from src.Repository.data_provider import DataProvider
-from src.platform import Account, Transfer, Auxiliary, NewOrder
+from src.Utilities.constants import Constants
+from src.trading_platform import Account, Transfer, Auxiliary, NewOrder
 
 
 class CreateGui:
@@ -93,8 +94,16 @@ class CreateGui:
                                                      Constants.FONT_SIZE_REGULAR))
 
         # tworzenie pól tekstowych
-        self.amount_text = StringVar()
-        self.amount_entry = Entry(self.window, textvariable=Constants.TEXT_AMOUNT)
+        self.amount_entry_text = StringVar()
+        limit_entry(self.amount_entry_text, 8)
+        self.amount_entry = Entry(self.window,
+                                  textvariable=self.amount_entry_text, #Constants.TEXT_AMOUNT,
+                                  bd=Constants.ENTRY_BORDER_SIZE,
+                                  font=(Constants.FONT_TYPEFACE, Constants.ENTRY_FONT_SIZE),
+                                  justify=CENTER,
+                                  width=Constants.ENTRY_WIDTH)
+
+
 
         # ---tworzenie przycisków--- #
 
@@ -316,3 +325,10 @@ class CreateGui:
         """Aktualizacja treści wyświetlanej przez zadaną etykietę"""
 
         label_text_var.set(label_text)
+
+def limit_entry(str_var, length):
+    def callback(str_var):
+        c = str_var.get()[0:length]
+        str_var.set(c)
+
+    str_var.trace("w", lambda name, index, mode, str_var=str_var: callback(str_var))

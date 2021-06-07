@@ -12,8 +12,6 @@ class TestWithdrawal(unittest.TestCase):
         cls.account = Account()
         cls.transfer = Transfer()
         cls.platform_account = PlatformAccount()
-        cls.account.set_account_balance(500)
-        cls.platform_account.set_platform_balance(0)
 
     def test_withdrawing_more_than_account_balance_should_raise_exception(self):
         """Test sprawdza próbę wypłaty z konta kwoty większej niż stan wolnych środków.
@@ -32,9 +30,11 @@ class TestWithdrawal(unittest.TestCase):
         Oczekiwane zmniejszenie wartości wolnych środków na koncie o wartość podaną przez użytkownika, pobranie prowizji i wypłacenie pozostałych środków użytkownikowi"""
 
         # given
+        self.account.set_account_balance(500)
+        self.platform_account.set_platform_balance(0)
         account_balance_before_withdrawal = self.account.get_account_balance()
-        withdrawal_amount = Constants.WITHDRAWAL_COMMISSION_THRESHOLD - 100
         platform_balance_before_withdrawal = self.platform_account.get_platform_balance()
+        withdrawal_amount = Constants.WITHDRAWAL_COMMISSION_THRESHOLD - 100
         expected_account_balance_after_withdrawal = account_balance_before_withdrawal - withdrawal_amount
         expected_platform_balance_after_withdrawal = platform_balance_before_withdrawal + Constants.WITHDRAWAL_COMMISSION_AMOUNT
         expected_withdrawal_amount_given_to_user = withdrawal_amount - Constants.WITHDRAWAL_COMMISSION_AMOUNT
@@ -52,9 +52,11 @@ class TestWithdrawal(unittest.TestCase):
         Oczekiwane zmniejszenie wartości wolnych środków na koncie o wartość podaną przez użytkownika, brak pobrania prowizji, wypłacenie wszystkich środków użytkownikowi"""
 
         # given
+        self.account.set_account_balance(500)
+        self.platform_account.set_platform_balance(0)
         account_balance_before_withdrawal = self.account.get_account_balance()
-        withdrawal_amount = Constants.WITHDRAWAL_COMMISSION_THRESHOLD + 100
         platform_balance_before_withdrawal = self.platform_account.get_platform_balance()
+        withdrawal_amount = Constants.WITHDRAWAL_COMMISSION_THRESHOLD + 100
 
         expected_account_balance_after_withdrawal = account_balance_before_withdrawal - withdrawal_amount
         expected_platform_balance_after_withdrawal = platform_balance_before_withdrawal

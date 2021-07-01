@@ -69,7 +69,7 @@ class TestSellShares(unittest.TestCase):
         self.new_order.handle_stock_sell_order(self.company, transaction_value, nr_of_shares_to_sell)
 
         # then
-        self.assertEqual(expected_nr_of_shares_owned_after_transaction, self.account._owned_shares_tracker[self.company_symbol])
+        self.assertEqual(expected_nr_of_shares_owned_after_transaction, self.account._owned_companies[self.company_symbol])
         self.assertEqual(expected_account_balance, self.account.get_account_balance())
         self.assertEqual(expected_value_of_owned_shares, self.account.get_value_of_shares_held())
         self.assertEqual(expected_total_account_value, self.account.get_total_account_value_text())

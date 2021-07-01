@@ -40,16 +40,3 @@ class DataProvider(Data):
         """Metoda zwraca wszystkie obiekty klasy Company"""
 
         return cls.__companies
-
-    @classmethod
-    def make_companies_dict(cls):
-        """Metoda tworzy i zwraca słownik o wielkości wszystkich dostępnych do zakupu firm.
-        klucze to symbole firm
-        wartości są zerami - domyślnie użytkownik nie posiada akcji żadnej firmy"""
-
-        # tworzenie listy symboli wszystkich firm
-        company_symbols = [company.get_symbol() for company in cls.__companies]
-
-        owned_companies = {company_symbol: 0 for company_symbol in company_symbols}
-
-        return owned_companies

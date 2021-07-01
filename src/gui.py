@@ -6,7 +6,7 @@ from src.Utilities.constants import Constants
 from src.trading_platform import Account, Transfer, Auxiliary, NewOrder
 
 
-class Gui:
+class Gui(Account):
     """Klasa odpowiedzialna za obsługę graficznego interfejsu programu"""
 
     def __init__(self, window):
@@ -26,6 +26,7 @@ class Gui:
         self.window.title(Constants.TEXT_WINDOW_TITLE)  # nadanie tytułu dla głównego okna
         # TODO: implement window.iconbitmap with .ico
 
+    # noinspection PyAttributeOutsideInit
     def create_widgets(self):
         """Stworzenie, wyświetlenie, przypisanie funkcjonalności widżetów"""
 
@@ -243,7 +244,7 @@ class Gui:
         stock_amount = self.stock_amount_spinbox.get()
 
         # wybór firmy, weryfikacja oraz ewentualna realizacja zlecenia
-        successful_transaction = self.new_order.select_company(order_type, company_index, stock_amount)
+        successful_transaction, bought_new_company = self.new_order.select_company(order_type, company_index, stock_amount)
 
         if not successful_transaction:
             return
@@ -251,25 +252,43 @@ class Gui:
         company = DataProvider.get_company(company_index)
         company_symbol = company.get_symbol()
 
-        if not self.account.check_if_company_is_already_bought(company_symbol):
-            # akcje firmy zostały zakupione po raz pierwszy - indeks nowej pozycji zostaje przypisany do słownika
-            self.account.append_bought_company_to_listbox(company_symbol)
-
-        bought_company_listbox_index = self.account.get_bought_company_listbox_index(company_symbol)
-
-        self.current_stock_positions_listbox.delete(bought_company_listbox_index)
+        # update current stock positions listbox
         company_position_size = self.account.get_nr_of_shares_owned(company_symbol)
+        idx = self.account._sorted_companies.index(company_symbol)
 
-        self.current_stock_positions_listbox.insert(bought_company_listbox_index,
-                                                    "{}: {}".format(company_symbol, company_position_size))
+        # removing the Listbox Item before updating new position
+        self.current_stock_positions_listbox.delete(idx)
+
+        if order_type == Constants.SELL_ORDER:
+            if self.account._owned_companies[company_symbol] == 0:
+                # there are no more owned shares, remove label from listbox
+
+                # Get the index of a Listbox Item using it's label string
+                # idx = self.current_stock_positions_listbox.get(0, END).index(f"{company_symbol}: {company_position_size}")
+
+                # removing company from owned and sorted companies
+                del self.account._owned_companies[company_symbol]
+                self.account._sorted_companies.remove(company_symbol)
+            else:
+                # user still owns company shares after SELL ORDER
+                self.current_stock_positions_listbox.insert(idx, f"{company_symbol}: {company_position_size}")
+        else:
+            # BUY ORDER
+            if not bought_new_company:
+                self.current_stock_positions_listbox.insert(idx, f"{company_symbol}: {company_position_size}")
+            else:
+                # user bought shares of a new company
+                for listbox_index in range(0, self.current_stock_positions_listbox.size()):
+                    self.current_stock_positions_listbox.delete(listbox_index)
+
+                for listbox_index, cmp_symbol in enumerate(self.account._sorted_companies):
+                    self.current_stock_positions_listbox.insert(listbox_index, f"{cmp_symbol}: {self.account.get_nr_of_shares_owned(cmp_symbol)}")
 
         # aktualizacja etykiety informującej o wysokości wolnych środków na konice
-        value_of_shares_held_text = self.account.get_value_of_shares_held_text()
-        self.update_label(self.value_of_shares_held_label_text, value_of_shares_held_text)
+        self.update_label(self.value_of_shares_held_label_text, self.account.get_value_of_shares_held_text())
 
         # aktualizacja etykiety informującej o wartości posiadanych akcji
-        account_balance_text = self.account.get_current_account_balance_text()
-        self.update_label(self.account_balance_label_text, account_balance_text)
+        self.update_label(self.account_balance_label_text, self.account.get_current_account_balance_text())
 
         # po dokonaniu transakcji, odznaczamy element z listy
         self.companies_listbox.selection_clear(0, 'end')

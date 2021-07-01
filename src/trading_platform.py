@@ -103,27 +103,14 @@ class Account:
     DataProvider.instantiate_companies()  # stworzenie instancji obiektów firm
     __account_balance = 0  # aktualny stan wolnych środków na konice
     __value_of_shares_held = 0  # aktualna wartość posiadanych akcji
-    _owned_shares_tracker = DataProvider.make_companies_dict()  # słownik z aktualną liczbą posiadanych akcji poszczególnych firm
-    _bought_companies_listbox_indexes = {}  # pozycje firm na liście zakupionych akcji
-
-    def check_if_company_is_already_bought(self, company_symbol) -> bool:
-        if company_symbol in self._bought_companies_listbox_indexes:
-            return True
-        else:
-            return False
-
-    def get_bought_company_listbox_index(self, company_symbol):
-        return self._bought_companies_listbox_indexes.get(company_symbol)
-
-    def append_bought_company_to_listbox(self, company_symbol):
-        self._bought_companies_listbox_indexes[company_symbol] = len(
-            self._bought_companies_listbox_indexes)
+    _owned_companies = {}  # dict: key = owned company, val = nr of shares
+    _sorted_companies = []  # owned companies sorted in specified order
 
     def get_nr_of_shares_owned(self, company_symbol):
-        return self._owned_shares_tracker.get(company_symbol)
+        return self._owned_companies.get(company_symbol)
 
     def set_nr_of_owned_shares(self, company_symbol, amount):
-        self._owned_shares_tracker[company_symbol] = amount
+        self._owned_companies[company_symbol] = amount
 
     def get_current_account_balance_text(self):
         return Constants.TEXT_CURRENT_BALANCE + str(self.get_account_balance()) + Constants.TEXT_CURRENCY
@@ -167,10 +154,6 @@ class Account:
     def get_total_account_value(self):
         return self.get_account_balance() + self.get_value_of_shares_held()
 
-    @property
-    def bought_companies_listbox_indexes(self):
-        return self._bought_companies_listbox_indexes
-
 
 class PlatformAccount:
     _platform_balance = 0  # wartość pobranych prowizji przez platformę
@@ -198,7 +181,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         verified = VerifyUserInput.verify_user_input(nr_of_shares)
 
         if not verified:
-            return
+            return False
 
         nr_of_shares = int(nr_of_shares)
         share_price = company.get_price()
@@ -207,25 +190,27 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         transaction_value = round(nr_of_shares * share_price, 2)
 
         if order_type == Constants.BUY_ORDER:
-            successful_transaction = self.handle_stock_buy_order(company, transaction_value, nr_of_shares)
+            successful_transaction, bought_new_company = self.handle_stock_buy_order(company, transaction_value, nr_of_shares)
         elif order_type == Constants.SELL_ORDER:
-            successful_transaction = self.handle_stock_sell_order(company, transaction_value, nr_of_shares)
+            successful_transaction, bought_new_company = self.handle_stock_sell_order(company, transaction_value, nr_of_shares)
         else:
             successful_transaction = False
+            bought_new_company = False
 
-        return successful_transaction
+        return successful_transaction, bought_new_company
 
     def handle_stock_buy_order(self, company, transaction_value, nr_of_shares_to_buy):
         """Obsługa zlecenia zakupu akcji"""
 
         company_name = company.get_name()
         company_symbol = company.get_symbol()
+        bought_new_company = False  # information whether user bought shares of a new company - used for listbox
 
         try:
             commission = self.validate_transaction_value(transaction_value)
         except NotEnoughFundsException:
             successful_transaction = False
-            return successful_transaction
+            return successful_transaction, bought_new_company
 
         # prośba o potwierdzenie chęci zakupu + podanie informacji o transakcji
         confirmation = messagebox.askokcancel(Constants.MESSAGE_CONFIRM_BUY_SHARES,
@@ -238,7 +223,13 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
             self.increase_value_of_shares_held(transaction_value)
 
             # aktualizacja liczby posiadanych akcji danej firmy
-            self._owned_shares_tracker[company_symbol] += nr_of_shares_to_buy
+            if company_symbol not in self._owned_companies:
+                self._owned_companies[company_symbol] = nr_of_shares_to_buy
+                self._sorted_companies.append(company_symbol)
+                self._sorted_companies.sort()  # TODO: add sorting options
+                bought_new_company = True
+            else:
+                self._owned_companies[company_symbol] += nr_of_shares_to_buy
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano zakupu {} akcji firmy {}'
                                 .format(nr_of_shares_to_buy, company_name))
@@ -247,7 +238,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         else:
             successful_transaction = False
 
-        return successful_transaction
+        return successful_transaction, bought_new_company
 
     def validate_transaction_value(self, transaction_value):
         commission = round(Constants.BUYING_SHARES_COMMISSION * transaction_value, 2)
@@ -282,7 +273,7 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
             self.decrease_value_of_shares_held(transaction_value)
 
             # aktualizacja liczby posiadanych akcji danej firmy
-            self._owned_shares_tracker[company_symbol] -= nr_of_shares_to_sell
+            self._owned_companies[company_symbol] -= nr_of_shares_to_sell
 
             messagebox.showinfo('Sukces', 'Pomyślnie dokonano sprzedaży {} akcji firmy {}'
                                 .format(nr_of_shares_to_sell, company_name))
@@ -291,10 +282,12 @@ class NewOrder(PlatformAccount, Account, Auxiliary):
         else:
             successful_transaction = False
 
-        return successful_transaction
+        return successful_transaction, False
 
     def check_if_user_has_enough_shares(self, company_symbol, stock_amount):
-        if self._owned_shares_tracker[company_symbol] < stock_amount:
+        if company_symbol not in self._owned_companies:
+            raise NotEnoughSharesException
+        elif self._owned_companies[company_symbol] < stock_amount:
             # użytkownik nie posiada wystarczającej ilości akcji wybranej firmy
             raise NotEnoughSharesException
 
